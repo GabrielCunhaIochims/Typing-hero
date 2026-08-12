@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Cadastro - Rhythm Game</title>
+  <link rel="stylesheet" href="CSS/auth.css">
+  <!-- SDK do Supabase v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-header">
+      <button id="tabLogin" class="tab-btn active" onclick="switchTab('login')">Entrar</button>
+      <button id="tabRegister" class="tab-btn" onclick="switchTab('register')">Cadastrar</button>
+    </div>
+
+    <!-- Formulário de Login -->
+    <form id="formLogin" class="auth-form active" onsubmit="handleLogin(event)">
+      <h2>Área do Jogador</h2>
+      <div class="input-group">
+        <label for="loginEmail">E-mail</label>
+        <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+      </div>
+      <div class="input-group">
+        <label for="loginPassword">Senha</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="submit-btn" id="btnLogin">ENTRAR NO JOGO</button>
+      <p id="loginError" class="error-msg"></p>
+    </form>
+
+    <!-- Formulário de Cadastro -->
+    <form id="formRegister" class="auth-form" onsubmit="handleRegister(event)">
+      <h2>Criar Conta</h2>
+      <div class="input-group">
+        <label for="regName">Nome de Jogador (Nick)</label>
+        <input type="text" id="regName" placeholder="Ex: CyberNinja" required maxlength="15">
+      </div>
+      <div class="input-group">
+        <label for="regEmail">E-mail</label>
+        <input type="email" id="regEmail" placeholder="seu@email.com" required>
+      </div>
+      <div class="input-group">
+        <label for="regPassword">Senha (min. 6 caracteres)</label>
+        <input type="password" id="regPassword" placeholder="••••••••" minlength="6" required>
+      </div>
+      <button type="submit" class="submit-btn" id="btnRegister">CRIAR CONTA</button>
+      <p id="regError" class="error-msg"></p>
+      <p id="regSuccess" class="success-msg"></p>
+    </form>
+
+    <div class="auth-footer">
+      <a href="index.html" class="back-link">← Jogar como Convidado</a>
+    </div>
+  </div>
+
+  <script src="JS/auth.js"></script>
+
+</body>
+</html>
