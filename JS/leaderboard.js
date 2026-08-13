@@ -34,35 +34,55 @@ function createLeaderboardUI() {
   }
   
   // Salva a pontuação no banco do Supabase e no LocalStorage
-  async function saveScoreForSong(songKey, newScore, rankName, wpm) {
-    let playerName = "Anônimo";
-    let userId = null;
-  
-    if (typeof currentUser !== "undefined" && currentUser) {
-      userId = currentUser.id;
-      playerName = currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+  // Salva a pontuação no banco do Supabase e atualiza o ranking
+async function saveScoreForSong(songKey, newScore, rankName, wpm) {
+  let playerName = "Anônimo";
+  let userId = null;
+
+  // Usa currentUser se existir (declarado no auth.js)
+  if (typeof currentUser !== "undefined" && currentUser) {
+    userId = currentUser.id;
+    playerName = currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+  } else {
+    playerName = prompt("Digite seu nome para o ranking:", "Jogador") || "Anônimo";
+  }
+
+  let savedInSupabase = false;
+
+  if (typeof _supabase !== "undefined") {
+    const { data, error } = await _supabase
+      .from('leaderboard')
+      .insert([
+        { 
+          user_id: userId, 
+          player: playerName, 
+          score: newScore, 
+          rank: rankName, 
+          wpm: wpm, 
+          song_key: songKey 
+        }
+      ]);
+
+    if (error) {
+      console.error("Erro RLS/Supabase ao salvar ranking:", error.message);
     } else {
-      playerName = prompt("Digite seu nome para o ranking:", "Jogador") || "Anônimo";
+      savedInSupabase = true;
     }
-  
-    if (typeof _supabase !== "undefined") {
-      const { error } = await _supabase
-        .from('leaderboard')
-        .insert([
-          { 
-            user_id: userId, 
-            player: playerName, 
-            score: newScore, 
-            rank: rankName, 
-            wpm: wpm, 
-            song_key: songKey 
-          }
-        ]);
-  
-      if (error) {
-        console.error("Erro ao salvar pontos no Supabase:", error);
-      }
-    }
+  }
+
+  // Backup no LocalStorage apenas se o Supabase não responder
+  if (!savedInSupabase) {
+    const allScores = JSON.parse(localStorage.getItem("typing_game_leaderboards")) || {};
+    if (!allScores[songKey]) allScores[songKey] = [];
+    allScores[songKey].push({ player: playerName, score: newScore, rank: rankName, wpm: wpm, date: new Date().toLocaleDateString() });
+    allScores[songKey].sort((a, b) => b.score - a.score);
+    allScores[songKey] = allScores[songKey].slice(0, 10);
+    localStorage.setItem("typing_game_leaderboards", JSON.stringify(allScores));
+  }
+
+  // Re-renderiza a tabela atualizada
+  renderLeaderboard(songKey);
+}
   
     // Backup no LocalStorage
     const allScores = JSON.parse(localStorage.getItem("typing_game_leaderboards")) || {};
