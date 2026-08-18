@@ -59,15 +59,15 @@ async function fetchScoresForSong(songKey) {
   return allScores[songKey] || [];
 }
 
-// 4. Salva a pontuação (Grava no LocalStorage + Supabase) e recarrega a UI
-// 4. Salva a pontuação (Mantém apenas o maior recorde por jogador/música)
+
+// 4. Salva a pontuação (Atualiza a UI APENAS se bater o recorde anterior)
 async function saveScoreForSong(songKey, newScore, rankName, wpm) {
   const parsedScore = Math.round(Number(newScore) || 0);
   const parsedWpm = Math.round(Number(wpm) || 0);
 
   if (parsedScore <= 0) return; // Ignora pontuações zeradas
 
-  // 🔒 Apenas usuários logados
+  // 🔒 Apenas usuários logados podem salvar
   if (typeof currentUser === "undefined" || !currentUser) {
     console.warn("Pontuação não salva: Apenas usuários logados podem entrar na leaderboard.");
     return;
@@ -78,10 +78,12 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
                      currentUser.email?.split("@")[0] || 
                      "Jogador";
 
-  // A. Salva / Atualiza no Supabase
+  let recordUpdated = false; // Flag para controlar se houve novo recorde
+
+  // A. Operações no Supabase
   if (typeof _supabase !== "undefined" && _supabase) {
     try {
-      // 1. Busca se o usuário já tem uma pontuação salva nesta música
+      // 1. Busca a pontuação mais alta que o usuário já possui nessa música
       const { data: existingRecord, error: selectError } = await _supabase
         .from("leaderboard")
         .select("id, score")
@@ -92,7 +94,7 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
       if (selectError) {
         console.error("Erro ao consultar registro existente:", selectError.message);
       } else if (existingRecord) {
-        // 2. Já existe: Atualiza APENAS se a nova pontuação for maior que o recorde antigo
+        // 2. Já existe um registro: Atualiza SOMENTE se a nova pontuação for superior
         if (parsedScore > existingRecord.score) {
           const { error: updateError } = await _supabase
             .from("leaderboard")
@@ -104,16 +106,17 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
             })
             .eq("id", existingRecord.id);
 
-          if (updateError) {
-            console.error("Erro ao atualizar recorde no Supabase:", updateError.message);
+          if (!updateError) {
+            recordUpdated = true;
+            console.log("🔥 Novo recorde pessoal registrado no Supabase!");
           } else {
-            console.log("🔥 Novo recorde pessoal salvo no Supabase!");
+            console.error("Erro ao atualizar recorde no Supabase:", updateError.message);
           }
         } else {
-          console.log("Pontuação atual não superou o recorde do jogador. Mantendo pontuação antiga.");
+          console.log(`Pontuação (${parsedScore}) não superou o recorde atual (${existingRecord.score}). Mantendo a maior.`);
         }
       } else {
-        // 3. Não existe: Insere o primeiro registro do jogador para essa música
+        // 3. Primeira partida do usuário nesta música: Insere o primeiro registro
         const { error: insertError } = await _supabase
           .from("leaderboard")
           .insert([
@@ -127,7 +130,10 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
             }
           ]);
 
-        if (insertError) {
+        if (!insertError) {
+          recordUpdated = true;
+          console.log("🎯 Primeiros pontos registrados para esta música!");
+        } else {
           console.error("Erro ao gravar novo ranking no Supabase:", insertError.message);
         }
       }
@@ -136,41 +142,35 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
     }
   }
 
-  // B. Salva / Atualiza no LocalStorage (Recorde Local)
-  const allScores = JSON.parse(localStorage.getItem("typing_game_leaderboards")) || {};
-  if (!allScores[songKey]) allScores[songKey] = [];
+  // B. Atualiza LocalStorage e a Tabela na Tela APENAS se o recorde foi batido
+  if (recordUpdated) {
+    const allScores = JSON.parse(localStorage.getItem("typing_game_leaderboards")) || {};
+    if (!allScores[songKey]) allScores[songKey] = [];
 
-  const existingIndex = allScores[songKey].findIndex(item => item.player === playerName);
+    const existingIndex = allScores[songKey].findIndex(item => item.player === playerName);
 
-  if (existingIndex !== -1) {
-    // Se a pontuação for maior, substitui no LocalStorage
-    if (parsedScore > allScores[songKey][existingIndex].score) {
-      allScores[songKey][existingIndex] = {
-        player: playerName,
-        score: parsedScore,
-        rank: rankName,
-        wpm: parsedWpm,
-        date: new Date().toLocaleDateString("pt-BR")
-      };
-    }
-  } else {
-    // Adiciona novo registro
-    allScores[songKey].push({
+    const newEntry = {
       player: playerName,
       score: parsedScore,
       rank: rankName,
       wpm: parsedWpm,
       date: new Date().toLocaleDateString("pt-BR")
-    });
+    };
+
+    if (existingIndex !== -1) {
+      allScores[songKey][existingIndex] = newEntry;
+    } else {
+      allScores[songKey].push(newEntry);
+    }
+
+    // Mantém os 10 maiores placares
+    allScores[songKey].sort((a, b) => b.score - a.score);
+    allScores[songKey] = allScores[songKey].slice(0, 10);
+    localStorage.setItem("typing_game_leaderboards", JSON.stringify(allScores));
+
+    // Recarrega a tabela na interface imediatamente
+    await renderLeaderboard(songKey);
   }
-
-  // Ordena por maior pontuação e limita ao top 10
-  allScores[songKey].sort((a, b) => b.score - a.score);
-  allScores[songKey] = allScores[songKey].slice(0, 10);
-  localStorage.setItem("typing_game_leaderboards", JSON.stringify(allScores));
-
-  // C. Atualiza a interface
-  await renderLeaderboard(songKey);
 }
 
 // 5. Renderiza o Ranking na tela
