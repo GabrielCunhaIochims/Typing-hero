@@ -66,19 +66,19 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
 
   if (parsedScore <= 0) return; // Ignora pontuações zeradas
 
-  let playerName = "Anônimo";
-  let userId = null;
-
-  // Verifica se o jogador está logado
-  if (typeof currentUser !== "undefined" && currentUser) {
-    userId = currentUser.id;
-    playerName = currentUser.user_metadata?.display_name || currentUser.email?.split("@")[0] || "Jogador";
-  } else {
-    const inputName = prompt("Sua pontuação vai para o Ranking! Digite seu Nick:", "Convidado");
-    playerName = inputName && inputName.trim() !== "" ? inputName.trim().substring(0, 15) : "Convidado";
+  //  BLOQUEIO DE CONVIDADOS / NÃO LOGADOS
+  if (typeof currentUser === "undefined" || !currentUser) {
+    console.warn("Pontuação não salva: Apenas usuários logados podem entrar na leaderboard.");
+    return; // Encerra a função sem pedir prompt e sem salvar no LocalStorage/Supabase
   }
 
-  // A. Salva no LocalStorage (Garantia Local Imediata)
+  // Dados do usuário logado
+  const userId = currentUser.id;
+  const playerName = currentUser.user_metadata?.display_name || 
+                     currentUser.email?.split("@")[0] || 
+                     "Jogador";
+
+  // A. Salva no LocalStorage (Apenas para o usuário logado)
   const allScores = JSON.parse(localStorage.getItem("typing_game_leaderboards")) || {};
   if (!allScores[songKey]) allScores[songKey] = [];
 
