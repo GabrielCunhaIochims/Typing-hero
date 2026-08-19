@@ -1,7 +1,7 @@
 const MUSIC_LIBRARY = {
     "hellfire": {
       title: "Hellfire Overdrive (Cyberpunk/Metal)",
-      url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534236824875040768/Hellfire_Overdrive.mp3?ex=6a7364e3&is=6a721363&hm=6c0134794f51da7552d836ed779cdbc34815e8365f3548aac0afc1a95865b9a2&.mp3",
+      url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534236824875040768/Hellfire_Overdrive.mp3?ex=6a872b63&is=6a85d9e3&hm=e27c4d7b54d0b8f152d74213a5f1f044127225c95a842055c2e04e6408f1adb4&",
       multiplier: 1.5,
       phrases: [
         "Seus dedos devem se mover mais rápido do que as chamas.",
