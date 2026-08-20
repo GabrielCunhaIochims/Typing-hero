@@ -4,9 +4,12 @@ const MUSIC_LIBRARY = {
       url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534236824875040768/Hellfire_Overdrive.mp3?ex=6a872b63&is=6a85d9e3&hm=e27c4d7b54d0b8f152d74213a5f1f044127225c95a842055c2e04e6408f1adb4&",
       multiplier: 1.5,
       phrases: [
-        "Seus dedos devem se mover mais rápido do que as chamas.",
-        "Rompa a linha vermelha e abrace o caos.",
-        "Sem freios, sem misericórdia, apenas sobrecarga pura."
+        "Metal queimando no asfalto, neon sangrando no horizonte.",
+        "Acelere até o motor virar fumaça e a alma virar código.",
+        "Sem freios, sem limites, sem salvação: bem-vindo ao Hellfire Overdrive.",
+        "Onde o cromo derrete e a velocidade domina o caos.",
+        "Sinta o peso do aço, o calor do fogo e a força da distorção.",
+        ""
       ]
     },
     "nature": {
@@ -19,12 +22,26 @@ const MUSIC_LIBRARY = {
       ]
     },
     "code_master": {
-      title: "Code Runner (Synthwave / Tech)",
-      url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534261673173713046/Bitrush_Overdrive.mp3?ex=6a737c08&is=6a722a88&hm=9bf3c8315d03fdee588f14d1f5e5978179db80439b5a0f6f9397f56179d28167&.mp3",
+      title: "Bitrush_Overdrive (Synthwave / Tech)",
+      url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534261673173713046/Bitrush_Overdrive.mp3?ex=6a87eb48&is=6a8699c8&hm=ba4d38bbd5a69061265bc5cada65460e353c6016da1b2a97cd4e4c354b67291f&",
       multiplier: 1.25,
       phrases: [
-        "const hype = currentCombo * multiplier;",
-        "if (typedChar === targetChar) score += 100;"
+        "let pontos = 0;",
+        "const nome = 'Jogador 1';",
+        "console.log('Iniciando o jogo...');",
+        "let vidas = 3;"
+        "vidas -= 1;",
+        "const ativo = true;",
+        "if (combo >= 10) { multiplicador = 2; }",
+        "function somarPontos(atual, bonus) { return atual + bonus; }",
+        "for (let i = 0; i < 5; i++) { criarInimigo(); }",
+        "const lista = ['fácil', 'médio', 'difícil'];",
+        "const doubleScore = (score) => score * 2;",
+        "const player = { name: 'Hero', hp: 100, isAlive: true };",
+        "const speed = wpm > 80 ? 'Ultra Fast' : 'Normal';",
+        "const arr = [1, 2, 3].map((num) => num * 10);",
+        "setTimeout(() => { alert('Tempo esgotado!'); }, 3000);",
+        "const { combo, multiplier } = gameState;"  
       ]
     }
   };
