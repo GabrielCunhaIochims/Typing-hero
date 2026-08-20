@@ -23,15 +23,8 @@ const MUSIC_LIBRARY = {
         url: "https://seu-link-de-audio.mp3",
         multiplier: 1.15,
         phrases: [
-          "Arrastados pela tempestade eterna que nunca descansa.",
-          "O desejo torna-se o vento que despedaça as sombras.",
-          "Sem luz, sem trégua, apenas a fúria do torvelinho infernal.",
-          "Ceda à tentação antes de ser engolido pelo turbilhão.",
-          "A paixão cega transforma-se em caos incansável.",
-          "Gritos sutis perdidos no vendaval da perdição.",
-          "As rajadas da obsessão arrastam as almas sem rumo.",
-          "Um redemoinho elétrico onde o prazer encontra a punição.",
-          "Nenhum descanso sob a tempestade dos desejos proibidos."
+          "as"
+         
         ]
       }
     }
