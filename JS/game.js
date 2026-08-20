@@ -1,6 +1,6 @@
 const MUSIC_LIBRARY = {
   "9_circles_of_hell": {
-    sectionName: "9 Circles of Hell",
+    sectionName: "Infernal Descent",
     tracks: {
       "limbo": {
         title: "Limbo Echoes (Dark Synthwave / Cyber-Rock)",
@@ -19,7 +19,7 @@ const MUSIC_LIBRARY = {
         ]
       },
       "lust": {
-        title: "Vortex of Desires (Electro-Industrial / Synth-Metal)",
+        title: "Vortex of Desires (Electro-Industrial / Synth-Metal) WIP",
         url: "https://seu-link-de-audio.mp3",
         multiplier: 1.15,
         phrases: [
@@ -37,7 +37,7 @@ const MUSIC_LIBRARY = {
     }
   },
   "cyber_overdrive": {
-    sectionName: "Cyber Overdrive",
+    sectionName: "Cybernetic Protocol",
     tracks: {
       "hellfire": {
         title: "Hellfire Overdrive (Cyberpunk/Metal)",
