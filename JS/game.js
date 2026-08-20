@@ -8,8 +8,8 @@ const MUSIC_LIBRARY = {
         "Acelere até o motor virar fumaça e a alma virar código.",
         "Sem freios, sem limites, sem salvação: bem-vindo ao Hellfire Overdrive.",
         "Onde o cromo derrete e a velocidade domina o caos.",
-        "Sinta o peso do aço, o calor do fogo e a força da distorção.",
-        ""
+        "Sinta o peso do aço, o calor do fogo e a força da distorção."
+        
       ]
     },
     "nature": {
