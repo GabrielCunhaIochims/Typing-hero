@@ -8,18 +8,35 @@ const MUSIC_LIBRARY = {
       "Acelere até o motor virar fumaça e a alma virar código.",
       "Sem freios, sem limites, sem salvação: bem-vindo ao Hellfire Overdrive.",
       "Onde o cromo derrete e a velocidade domina o caos.",
-      "Sinta o peso do aço, o calor do fogo e a força da distorção."
+      "Sinta o peso do aço, o calor do fogo e a força da distorção.",
+      "Modo Overdrive Ativado: Sobrecarga nos sistemas",
+      "Sangue de óleo, coração de nitroglicerina.",
+      "Ultrapasse a velocidade da morte.",
+      "Conexão neural queimada a 10.000 RPM.",
+      "Injetando caos diretamente no barramento de dados.",
+      "As ruas de cromo não perdoam quem tem medo de pisar no fundo.",
+      "Guitarras distorcidas ecoando nas ruínas de uma metrópole esquecida.",
+      "Se o futuro é sombrio, nós o iluminaremos com o fogo dos nossos motores.",
+      "Na fronteira entre o circuito e a carne, apenas o ritmo do metal permanece.",
+      "Nossa liberdade não é programada, é conquistada na rotação máxima."
     ]
   },
-  "nature": {
-    title: "Nature Balance (Zen/Relaxante)",
-    url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534236824875040768/Hellfire_Overdrive.mp3",
-    multiplier: 1.0,
-    phrases: [
-      "Encontre a paz na cadência fluida do teclado.",
-      "Respire fundo e mantenha o ritmo constante."
-    ]
-  },
+  "limbo": {
+  title: "Limbo Echoes (Dark Synthwave / Cyber-Rock)",
+  url: "https://cdn.discordapp.com/attachments/1534234222217134191/1540075642270523402/Limbo_Echoes.mp3?ex=6a88a2b6&is=6a875136&hm=7a1ec7dc5e79ae70e7fa5cbe103470cc77f67a931c02f176f21c82b297ac43b9&",
+  multiplier: 1.0,
+  phrases: [
+    "A névoa esconde o abismo, mas a batida ecoa nas profundezas.",
+    "O Primeiro Círculo sussurra a promessa da dor eterna.",
+    "Sem esperança, mas com o ritmo gravado na alma dos esquecidos.",
+    "A pulsação do inferno ressoa na penumbra dos filósofos.",
+    "Sinta o pulso sombrio antes de despencar no abismo de fogo.",
+    "Um lugar sem salvação, onde o tempo é ditado pela frequência do caos.",
+    "A luz da razão se apaga na batida do inferno.",
+    "Suspiros sem lamento ecoam pelos prados da eternidade.",
+    "Passos lentos sobre a penumbra de uma paz ilusória."
+  ]
+},
   "code_master": {
     title: "Bitrush_Overdrive (Synthwave / Tech)",
     url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534261673173713046/Bitrush_Overdrive.mp3?ex=6a87eb48&is=6a8699c8&hm=ba4d38bbd5a69061265bc5cada65460e353c6016da1b2a97cd4e4c354b67291f&",
