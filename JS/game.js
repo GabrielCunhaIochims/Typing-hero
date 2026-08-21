@@ -34,7 +34,7 @@ const MUSIC_LIBRARY = {
     tracks: {
       "hellfire": {
         title: "Hellfire Overdrive (Cyberpunk/Metal)",
-        url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534236824875040768/Hellfire_Overdrive.mp3?ex=6a87d423&is=6a8682a3&hm=bf20095480ebe49587b3cfa37523630dda0c501dbd07760780ceec01dfb711a0&",
+        url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534236824875040768/Hellfire_Overdrive.mp3?ex=6a8925a3&is=6a87d423&hm=9728ca745c70dec88acaaa2d1a12b0284b0e4e85ee42f68ac0da1e09136b0247&",
         multiplier: 1.5,
         phrases: [
           "Metal queimando no asfalto, neon sangrando no horizonte.",
@@ -56,7 +56,7 @@ const MUSIC_LIBRARY = {
       },
       "code_master": {
         title: "Bitrush_Overdrive (Synthwave / Tech)",
-        url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534261673173713046/Bitrush_Overdrive.mp3?ex=6a87eb48&is=6a8699c8&hm=ba4d38bbd5a69061265bc5cada65460e353c6016da1b2a97cd4e4c354b67291f&",
+        url: "https://cdn.discordapp.com/attachments/1534234222217134191/1534261673173713046/Bitrush_Overdrive.mp3?ex=6a893cc8&is=6a87eb48&hm=ac187baf0ffa716b1fcfdf68906f0d49d6f3be3ea234a1227a9dce360dbc161b&",
         multiplier: 1.25,
         phrases: [
           "let pontos = 0;",
