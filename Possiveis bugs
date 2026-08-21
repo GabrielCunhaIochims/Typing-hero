@@ -1,2 +1,3 @@
 Foi relatado por players que as vezes a tecla selecionada pelo mesmo não é registrada ou algo faz um erro acontecer,
-tendo como consequencia o erro de caracter
+tendo como consequencia o erro de caracter - analisei o codigo e agora o teoricamente o bug n existe mais, ocasionado pelo codigo levar em conta
+o click do usuario, agora está levando em conta o input onde é digitado.
