@@ -540,13 +540,15 @@ input.addEventListener("input", () => {
   const typed = input.value;
   const chars = game.querySelectorAll(".char");
 
+  // Se o jogador tentou apagar caracteres corretos travados, restaura
   if (typed.length < correctCharsCount) {
     input.value = text.substring(0, correctCharsCount);
     return;
   }
 
-  if (typed.length > correctCharsCount) {
-    const index = typed.length - 1;
+  // Processa caractere por caractere caso múltiplos tenham sido digitados de uma vez (alta velocidade)
+  while (correctCharsCount < typed.length) {
+    const index = correctCharsCount;
     const typedChar = typed[index];
     const expectedChar = text[index];
     const charSpan = chars[index];
@@ -578,11 +580,12 @@ input.addEventListener("input", () => {
         showScorePopup(rect.left + rect.width / 2, rect.top, pointsGained);
       }
 
-      if (combo === MAX_COMBO && typed.length % 5 === 0) {
+      if (combo === MAX_COMBO && correctCharsCount % 5 === 0) {
         showComboPopup("MAX COMBO 8x!");
       }
 
     } else {
+      // Caso um caractere incorreto seja digitado
       combo = 0; 
       
       const currentRank = getCurrentRank();
@@ -612,13 +615,17 @@ input.addEventListener("input", () => {
         }, 300);
       }
 
-      input.value = typed.substring(0, index);
+      // Trunca o campo para manter apenas os caracteres corretos até o erro
+      input.value = text.substring(0, correctCharsCount);
 
       input.classList.add("error");
       setTimeout(() => input.classList.remove("error"), 250);
+
+      break; // Interrompe o processamento ao encontrar o primeiro erro
     }
   }
 
+  // Atualiza as classes CSS visuais do texto
   for (let i = 0; i < text.length; i++) {
     const charSpan = chars[i];
     if (!charSpan) continue;
