@@ -24,7 +24,6 @@ const MUSIC_LIBRARY = {
         multiplier: 1.15,
         phrases: [
           "as"
-         
         ]
       }
     }
@@ -81,7 +80,7 @@ const MUSIC_LIBRARY = {
   }
 };
 
-// Elementos do DOM
+// Elementos do DOM do Jogo
 const songSelect = document.getElementById("songSelect");
 const screenFlash = document.getElementById("screenFlash");
 
@@ -104,7 +103,14 @@ const rankUpBadge = document.getElementById("rankUpBadge");
 const rankBadgeContainer = document.getElementById("rankBadgeContainer");
 const rankUpShockwave = document.getElementById("rankUpShockwave");
 
-// Função para recuperar os dados da música navegando pelas seções
+// Elementos DOM do Modal de Bugs
+const bugReportBtn = document.getElementById("bugReportBtn");
+const bugReportOverlay = document.getElementById("bugReportOverlay");
+const closeBugModalBtn = document.getElementById("closeBugModalBtn");
+const bugReportForm = document.getElementById("bugReportForm");
+const bugFeedbackMsg = document.getElementById("bugFeedbackMsg");
+
+// Recupera dados da música navegando pelas seções
 function getSongData(songKey) {
   for (const sectionKey in MUSIC_LIBRARY) {
     const section = MUSIC_LIBRARY[sectionKey];
@@ -115,25 +121,27 @@ function getSongData(songKey) {
   return null;
 }
 
-// Preenche o elemento <select> com categorias <optgroup>
-songSelect.innerHTML = "";
-Object.keys(MUSIC_LIBRARY).forEach(sectionKey => {
-  const section = MUSIC_LIBRARY[sectionKey];
-  const group = document.createElement("optgroup");
-  group.label = section.sectionName;
+// Preenche o elemento <select>
+if (songSelect) {
+  songSelect.innerHTML = "";
+  Object.keys(MUSIC_LIBRARY).forEach(sectionKey => {
+    const section = MUSIC_LIBRARY[sectionKey];
+    const group = document.createElement("optgroup");
+    group.label = section.sectionName;
 
-  Object.keys(section.tracks).forEach(trackKey => {
-    const track = section.tracks[trackKey];
-    const opt = document.createElement("option");
-    opt.value = trackKey;
-    opt.textContent = `${track.title} (x${track.multiplier})`;
-    group.appendChild(opt);
+    Object.keys(section.tracks).forEach(trackKey => {
+      const track = section.tracks[trackKey];
+      const opt = document.createElement("option");
+      opt.value = trackKey;
+      opt.textContent = `${track.title} (x${track.multiplier})`;
+      group.appendChild(opt);
+    });
+
+    songSelect.appendChild(group);
   });
+}
 
-  songSelect.appendChild(group);
-});
-
-let currentSongKey = songSelect.value;
+let currentSongKey = songSelect ? songSelect.value : "";
 
 function applySelectedSong(key) {
   currentSongKey = key;
@@ -145,14 +153,18 @@ function applySelectedSong(key) {
   if (typeof renderLeaderboard === "function") renderLeaderboard(key);
 }
 
-applySelectedSong(currentSongKey);
+if (currentSongKey) {
+  applySelectedSong(currentSongKey);
+}
 
-songSelect.addEventListener("change", (e) => {
-  applySelectedSong(e.target.value);
-  if (!gameActive && typeof playMenuMusic === "function") {
-    playMenuMusic();
-  }
-});
+if (songSelect) {
+  songSelect.addEventListener("change", (e) => {
+    applySelectedSong(e.target.value);
+    if (!gameActive && typeof playMenuMusic === "function") {
+      playMenuMusic();
+    }
+  });
+}
 
 let score = 0;
 let hypePoints = 0;
@@ -197,6 +209,8 @@ function getCurrentRank() {
 }
 
 function triggerRankUpAnimation(rank) {
+  if (!rankUpBadge || !rankUpOverlay) return;
+
   rankUpBadge.textContent = rank.name;
   rankUpBadge.style.color = rank.color;
   rankUpOverlay.style.setProperty('--rank-color', rank.color);
@@ -215,7 +229,7 @@ function triggerRankUpAnimation(rank) {
     setTimeout(() => document.body.classList.remove('screen-shake'), 400);
   }
 
-  if (rank.index >= 4) {
+  if (rank.index >= 4 && screenFlash) {
     screenFlash.classList.add('active');
     setTimeout(() => screenFlash.classList.remove('active'), 200);
   }
@@ -230,9 +244,11 @@ function triggerRankUpAnimation(rank) {
   }
 
   rankUpOverlay.classList.remove('active');
-  rankUpShockwave.style.animation = 'none';
-  void rankUpShockwave.offsetWidth; 
-  rankUpShockwave.style.animation = 'shockwave-expand 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards';
+  if (rankUpShockwave) {
+    rankUpShockwave.style.animation = 'none';
+    void rankUpShockwave.offsetWidth; 
+    rankUpShockwave.style.animation = 'shockwave-expand 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards';
+  }
   rankUpOverlay.classList.add('active');
 
   if (typeof playRankUpSound === "function") playRankUpSound(rank.index);
@@ -243,6 +259,7 @@ function triggerRankUpAnimation(rank) {
 }
 
 function renderText() {
+  if (!game) return;
   game.innerHTML = "";
   for (let i = 0; i < text.length; i++) {
     const span = document.createElement("span");
@@ -259,21 +276,21 @@ function triggerSRankEffects(isActivating) {
     isSRankActive = true;
     if (typeof fadeAudioVolume === "function") fadeAudioVolume(gameMusic, MAX_VOLUME, 500);
 
-    game.classList.add('s-rank-active');
-    input.classList.add('s-rank-active');
+    if (game) game.classList.add('s-rank-active');
+    if (input) input.classList.add('s-rank-active');
 
   } else if (!isActivating && isSRankActive) {
     isSRankActive = false;
     if (typeof fadeAudioVolume === "function") fadeAudioVolume(gameMusic, BASE_VOLUME, 500);
 
-    game.classList.remove('s-rank-active');
-    input.classList.remove('s-rank-active');
+    if (game) game.classList.remove('s-rank-active');
+    if (input) input.classList.remove('s-rank-active');
   }
 }
 
 function updateStats() {
-  scoreValue.textContent = score.toLocaleString();
-  comboValue.textContent = combo + "x";
+  if (scoreValue) scoreValue.textContent = score.toLocaleString();
+  if (comboValue) comboValue.textContent = combo + "x";
 
   const currentRank = getCurrentRank();
   
@@ -288,18 +305,20 @@ function updateStats() {
     triggerSRankEffects(false);
   }
 
-  if (hypeValue.textContent !== currentRank.name) {
-    hypeValue.textContent = currentRank.name;
-    hypeValue.style.transform = "scale(1.5)";
-    setTimeout(() => hypeValue.style.transform = "scale(1)", 150);
+  if (hypeValue) {
+    if (hypeValue.textContent !== currentRank.name) {
+      hypeValue.textContent = currentRank.name;
+      hypeValue.style.transform = "scale(1.5)";
+      setTimeout(() => hypeValue.style.transform = "scale(1)", 150);
+    }
+    hypeValue.style.color = currentRank.color;
   }
-  hypeValue.style.color = currentRank.color;
 
   const nextRank = RANKS[currentRank.index + 1] || currentRank;
   const currentMin = currentRank.min;
   const currentMax = nextRank.min === currentMin ? currentMin + 30 : nextRank.min;
   const pct = Math.min(100, Math.max(0, ((hypePoints - currentMin) / (currentMax - currentMin)) * 100));
-  hypeBar.style.width = pct + "%";
+  if (hypeBar) hypeBar.style.width = pct + "%";
 
   if (currentRank.name === "HERO") {
     document.body.classList.add("frenzy");
@@ -310,7 +329,7 @@ function updateStats() {
   if (startTime && charCount > 0) {
     const minutes = (Date.now() - startTime) / 60000;
     const wpm = Math.round((charCount / 5) / Math.max(minutes, 0.01));
-    wpmValue.textContent = wpm;
+    if (wpmValue) wpmValue.textContent = wpm;
     maxWpm = Math.max(maxWpm, wpm);
   }
 }
@@ -382,21 +401,24 @@ function nextText() {
   text = currentPhrases[Math.floor(Math.random() * currentPhrases.length)];
 
   renderText();
-  input.value = "";
-  correctCharsCount = 0;
-  input.disabled = false;
-  input.classList.remove("error");
-
-  setTimeout(() => input.focus(), 50);
+  if (input) {
+    input.value = "";
+    correctCharsCount = 0;
+    input.disabled = false;
+    input.classList.remove("error");
+    setTimeout(() => input.focus(), 50);
+  }
 
   timeLeft = Math.min(maxTime, timeLeft + 4);
 }
 
-game.addEventListener("click", () => {
-  if (gameActive && !input.disabled) {
-    input.focus();
-  }
-});
+if (game) {
+  game.addEventListener("click", () => {
+    if (gameActive && input && !input.disabled) {
+      input.focus();
+    }
+  });
+}
 
 function startGame() {
   if (typeof initAudio === "function") initAudio();
@@ -415,20 +437,22 @@ function startGame() {
   gameActive = true;
   isSRankActive = false;
   startTime = Date.now();
-  overlay.classList.remove("active");
+  if (overlay) overlay.classList.remove("active");
 
-  songSelect.disabled = true;
-  quitBtn.style.display = "block";
+  if (songSelect) songSelect.disabled = true;
+  if (quitBtn) quitBtn.style.display = "block";
   nextText();
-  playBtn.style.display = "none";
+  if (playBtn) playBtn.style.display = "none";
   triggerSRankEffects(false);
 
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     timeLeft -= 0.1;
     const pct = Math.max(0, (timeLeft / maxTime) * 100);
-    timerFill.style.width = pct + "%";
-    timerFill.classList.toggle("danger", pct < 25);
+    if (timerFill) {
+      timerFill.style.width = pct + "%";
+      timerFill.classList.toggle("danger", pct < 25);
+    }
 
     if (hypePoints > 0) {
       hypePoints = Math.max(0, hypePoints - 0.08);
@@ -443,6 +467,7 @@ function startGame() {
 
 function animateFinalScore(targetScore) {
   const el = document.getElementById("finalScore");
+  if (!el) return;
   let current = 0;
   const duration = 1200;
   const stepTime = 20;
@@ -462,10 +487,12 @@ function animateFinalScore(targetScore) {
 function endGame() {
   gameActive = false;
   clearInterval(timerInterval);
-  input.disabled = true;
-  input.blur();
-  songSelect.disabled = false;
-  quitBtn.style.display = "none";
+  if (input) {
+    input.disabled = true;
+    input.blur();
+  }
+  if (songSelect) songSelect.disabled = false;
+  if (quitBtn) quitBtn.style.display = "none";
   document.body.classList.remove("frenzy");
   triggerSRankEffects(false);
 
@@ -474,11 +501,15 @@ function endGame() {
   const finalRankName = RANKS[highestRankIndex].name;
 
   animateFinalScore(score);
-  document.getElementById("finalRank").textContent = finalRankName;
-  document.getElementById("finalRank").style.color = RANKS[highestRankIndex].color;
-  document.getElementById("finalWpm").textContent = maxWpm;
+  const finalRankEl = document.getElementById("finalRank");
+  if (finalRankEl) {
+    finalRankEl.textContent = finalRankName;
+    finalRankEl.style.color = RANKS[highestRankIndex].color;
+  }
+  const finalWpmEl = document.getElementById("finalWpm");
+  if (finalWpmEl) finalWpmEl.textContent = maxWpm;
 
-  overlay.classList.add("active");
+  if (overlay) overlay.classList.add("active");
 
   setTimeout(() => {
     if (typeof saveScoreForSong === "function") {
@@ -491,15 +522,17 @@ function returnToMenu() {
   gameActive = false;
   clearInterval(timerInterval);
 
-  overlay.classList.remove("active");
-  playBtn.style.display = "inline-block";
-  quitBtn.style.display = "none";
-  input.disabled = true;
-  input.blur();
-  input.value = "";
-  input.placeholder = "Clique em PLAY para começar...";
-  game.innerHTML = "";
-  songSelect.disabled = false;
+  if (overlay) overlay.classList.remove("active");
+  if (playBtn) playBtn.style.display = "inline-block";
+  if (quitBtn) quitBtn.style.display = "none";
+  if (input) {
+    input.disabled = true;
+    input.blur();
+    input.value = "";
+    input.placeholder = "Clique em PLAY para começar...";
+  }
+  if (game) game.innerHTML = "";
+  if (songSelect) songSelect.disabled = false;
 
   score = 0;
   hypePoints = 0;
@@ -507,8 +540,8 @@ function returnToMenu() {
   previousRankIndex = 0;
   currentRankIndex = 0;
   charCount = 0;
-  wpmValue.textContent = "0";
-  timerFill.style.width = "100%";
+  if (wpmValue) wpmValue.textContent = "0";
+  if (timerFill) timerFill.style.width = "100%";
 
   document.body.classList.remove("frenzy");
   triggerSRankEffects(false);
@@ -516,143 +549,204 @@ function returnToMenu() {
   if (typeof playMenuMusic === "function") playMenuMusic();
 }
 
-playBtn.addEventListener("click", startGame);
-restartBtn.addEventListener("click", startGame);
-menuBtn.addEventListener("click", returnToMenu);
+if (playBtn) playBtn.addEventListener("click", startGame);
+if (restartBtn) restartBtn.addEventListener("click", startGame);
+if (menuBtn) menuBtn.addEventListener("click", returnToMenu);
 
 window.addEventListener("keydown", (e) => {
-  if (!gameActive && overlay.classList.contains("active") && (e.key === "Enter" || e.key === " ")) {
+  if (!gameActive && overlay && overlay.classList.contains("active") && (e.key === "Enter" || e.key === " ")) {
     e.preventDefault();
     startGame();
   }
 });
 
-input.addEventListener("keydown", (e) => {
-  if (!gameActive) return;
-  if (e.key === "Backspace" && input.value.length <= correctCharsCount) {
-    e.preventDefault();
-  }
-});
+if (input) {
+  input.addEventListener("keydown", (e) => {
+    if (!gameActive) return;
+    if (e.key === "Backspace" && input.value.length <= correctCharsCount) {
+      e.preventDefault();
+    }
+  });
 
-input.addEventListener("input", () => {
-  if (!gameActive) return;
+  input.addEventListener("input", () => {
+    if (!gameActive) return;
 
-  const typed = input.value;
-  const chars = game.querySelectorAll(".char");
+    const typed = input.value;
+    const chars = game.querySelectorAll(".char");
 
-  // Se o jogador tentou apagar caracteres corretos travados, restaura
-  if (typed.length < correctCharsCount) {
-    input.value = text.substring(0, correctCharsCount);
-    return;
-  }
-
-  // Processa caractere por caractere caso múltiplos tenham sido digitados de uma vez (alta velocidade)
-  while (correctCharsCount < typed.length) {
-    const index = correctCharsCount;
-    const typedChar = typed[index];
-    const expectedChar = text[index];
-    const charSpan = chars[index];
-
-    if (typedChar === expectedChar) {
-      correctCharsCount++;
-      combo = Math.min(MAX_COMBO, combo + 1);
-      hypePoints += 1.2;
-      charCount++;
-
-      const songData = getSongData(currentSongKey);
-      const songMultiplier = songData ? songData.multiplier : 1.0;
-      const basePoints = 15;
-      const comboMult = 1 + (combo * 0.15); 
-      const currentRank = getCurrentRank();
-      const rankMult = 1 + (currentRank.index * 0.25);
-      
-      const pointsGained = Math.round(basePoints * comboMult * rankMult * songMultiplier);
-      score += pointsGained;
-
-      timeLeft = Math.min(maxTime, timeLeft + 0.3);
-
-      if (typeof playSuccessSound === "function") playSuccessSound(combo);
-
-      if (charSpan) {
-        const rect = charSpan.getBoundingClientRect();
-        spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, currentRank.color, 5 + combo);
-        showTimePopup(rect.left + rect.width / 2, rect.top, "0.3", true);
-        showScorePopup(rect.left + rect.width / 2, rect.top, pointsGained);
-      }
-
-      if (combo === MAX_COMBO && correctCharsCount % 5 === 0) {
-        showComboPopup("MAX COMBO 8x!");
-      }
-
-    } else {
-      // Caso um caractere incorreto seja digitado
-      combo = 0; 
-      
-      const currentRank = getCurrentRank();
-      if (currentRank.index > 0) {
-        const previousRank = RANKS[currentRank.index - 1];
-        hypePoints = previousRank.min;
-      } else {
-        hypePoints = 0;
-      }
-
-      timeLeft = Math.max(0, timeLeft - 2.0);
-
-      if (typeof playErrorSound === "function") playErrorSound();
-
-      if (charSpan) {
-        charSpan.classList.remove("pending", "current");
-        charSpan.classList.add("wrong");
-        const rect = charSpan.getBoundingClientRect();
-        spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, "#ff3333", 8);
-        showTimePopup(rect.left + rect.width / 2, rect.top, "-2", false);
-        
-        setTimeout(() => {
-          if (charSpan.classList.contains("wrong")) {
-            charSpan.classList.remove("wrong");
-            charSpan.classList.add("current");
-          }
-        }, 300);
-      }
-
-      // Trunca o campo para manter apenas os caracteres corretos até o erro
+    if (typed.length < correctCharsCount) {
       input.value = text.substring(0, correctCharsCount);
-
-      input.classList.add("error");
-      setTimeout(() => input.classList.remove("error"), 250);
-
-      break; // Interrompe o processamento ao encontrar o primeiro erro
+      return;
     }
-  }
 
-  // Atualiza as classes CSS visuais do texto
-  for (let i = 0; i < text.length; i++) {
-    const charSpan = chars[i];
-    if (!charSpan) continue;
+    while (correctCharsCount < typed.length) {
+      const index = correctCharsCount;
+      const typedChar = typed[index];
+      const expectedChar = text[index];
+      const charSpan = chars[index];
 
-    const expected = text[i];
-    const actual = input.value[i];
+      if (typedChar === expectedChar) {
+        correctCharsCount++;
+        combo = Math.min(MAX_COMBO, combo + 1);
+        hypePoints += 1.2;
+        charCount++;
 
-    if (charSpan.classList.contains("wrong")) continue;
+        const songData = getSongData(currentSongKey);
+        const songMultiplier = songData ? songData.multiplier : 1.0;
+        const basePoints = 15;
+        const comboMult = 1 + (combo * 0.15); 
+        const currentRank = getCurrentRank();
+        const rankMult = 1 + (currentRank.index * 0.25);
+        
+        const pointsGained = Math.round(basePoints * comboMult * rankMult * songMultiplier);
+        score += pointsGained;
 
-    charSpan.classList.remove("pending", "correct", "current");
+        timeLeft = Math.min(maxTime, timeLeft + 0.3);
 
-    if (i < input.value.length) {
-      if (actual === expected) {
-        charSpan.classList.add("correct");
+        if (typeof playSuccessSound === "function") playSuccessSound(combo);
+
+        if (charSpan) {
+          const rect = charSpan.getBoundingClientRect();
+          spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, currentRank.color, 5 + combo);
+          showTimePopup(rect.left + rect.width / 2, rect.top, "0.3", true);
+          showScorePopup(rect.left + rect.width / 2, rect.top, pointsGained);
+        }
+
+        if (combo === MAX_COMBO && correctCharsCount % 5 === 0) {
+          showComboPopup("MAX COMBO 8x!");
+        }
+
+      } else {
+        combo = 0; 
+        
+        const currentRank = getCurrentRank();
+        if (currentRank.index > 0) {
+          const previousRank = RANKS[currentRank.index - 1];
+          hypePoints = previousRank.min;
+        } else {
+          hypePoints = 0;
+        }
+
+        timeLeft = Math.max(0, timeLeft - 2.0);
+
+        if (typeof playErrorSound === "function") playErrorSound();
+
+        if (charSpan) {
+          charSpan.classList.remove("pending", "current");
+          charSpan.classList.add("wrong");
+          const rect = charSpan.getBoundingClientRect();
+          spawnParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, "#ff3333", 8);
+          showTimePopup(rect.left + rect.width / 2, rect.top, "-2", false);
+          
+          setTimeout(() => {
+            if (charSpan.classList.contains("wrong")) {
+              charSpan.classList.remove("wrong");
+              charSpan.classList.add("current");
+            }
+          }, 300);
+        }
+
+        input.value = text.substring(0, correctCharsCount);
+
+        input.classList.add("error");
+        setTimeout(() => input.classList.remove("error"), 250);
+
+        break;
       }
-    } else if (i === input.value.length) {
-      charSpan.classList.add("current");
-    } else {
-      charSpan.classList.add("pending");
+    }
+
+    for (let i = 0; i < text.length; i++) {
+      const charSpan = chars[i];
+      if (!charSpan) continue;
+
+      const expected = text[i];
+      const actual = input.value[i];
+
+      if (charSpan.classList.contains("wrong")) continue;
+
+      charSpan.classList.remove("pending", "correct", "current");
+
+      if (i < input.value.length) {
+        if (actual === expected) {
+          charSpan.classList.add("correct");
+        }
+      } else if (i === input.value.length) {
+        charSpan.classList.add("current");
+      } else {
+        charSpan.classList.add("pending");
+      }
+    }
+
+    if (input.value === text) {
+      nextText();
+    }
+
+    updateStats();
+  });
+
+  input.addEventListener("paste", (e) => e.preventDefault());
+}
+
+// --- CONTROLE DO MODAL DE BUGS ---
+if (bugReportBtn && bugReportOverlay) {
+  bugReportBtn.addEventListener("click", () => {
+    bugReportOverlay.classList.add("active");
+    if (input) input.blur();
+  });
+}
+
+function closeBugModal() {
+  if (bugReportOverlay) {
+    bugReportOverlay.classList.remove("active");
+    if (bugReportForm) bugReportForm.reset();
+    if (bugFeedbackMsg) {
+      bugFeedbackMsg.textContent = "";
+      bugFeedbackMsg.className = "bug-feedback-msg";
     }
   }
+}
 
-  if (input.value === text) {
-    nextText();
-  }
+if (closeBugModalBtn) {
+  closeBugModalBtn.addEventListener("click", closeBugModal);
+}
 
-  updateStats();
-});
+if (bugReportOverlay) {
+  bugReportOverlay.addEventListener("click", (e) => {
+    if (e.target === bugReportOverlay) {
+      closeBugModal();
+    }
+  });
+}
 
-input.addEventListener("paste", (e) => e.preventDefault());
+if (bugReportForm) {
+  bugReportForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const categoryEl = document.getElementById("bugCategory");
+    const descriptionEl = document.getElementById("bugDescription");
+
+    const category = categoryEl ? categoryEl.value : "Geral";
+    const description = descriptionEl ? descriptionEl.value : "";
+
+    const bugData = {
+      songKey: currentSongKey || "Desconhecida",
+      category: category,
+      description: description,
+      date: new Date().toLocaleString()
+    };
+
+    // Salva no localStorage do usuário
+    const existingBugs = JSON.parse(localStorage.getItem("reportedBugs") || "[]");
+    existingBugs.push(bugData);
+    localStorage.setItem("reportedBugs", JSON.stringify(existingBugs));
+
+    if (bugFeedbackMsg) {
+      bugFeedbackMsg.textContent = "✓ Relatório enviado com sucesso! Obrigado.";
+      bugFeedbackMsg.className = "bug-feedback-msg success";
+    }
+
+    setTimeout(() => {
+      closeBugModal();
+    }, 1500);
+  });
+}
