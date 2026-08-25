@@ -688,8 +688,38 @@ if (input) {
 }
 
 // --- CONTROLE DO MODAL DE BUGS E ENVIO PARA O DISCORD ---
+// --- FUNÇÃO DE VALIDAÇÃO DE USUÁRIO LOGADO ---
+// Adapte esta função para retornar o objeto do seu usuário ou null
+function getLoggedUser() {
+  // Exemplo 1: Se você salva no localStorage após o login:
+  const userJson = localStorage.getItem("currentUser");
+  if (userJson) {
+    try {
+      return JSON.parse(userJson);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Exemplo 2: Se usa uma variável global do seu sistema de Auth (ex: Firebase, Supabase, OAuth)
+  // return window.currentUser || null;
+
+  return null;
+}
+
+// --- CONTROLE DO MODAL DE BUGS E ENVIO PARA O DISCORD ---
 if (bugReportBtn && bugReportOverlay) {
   bugReportBtn.addEventListener("click", () => {
+    const user = getLoggedUser();
+
+    // Bloqueia a abertura do modal se o usuário NÃO estiver logado
+    if (!user) {
+      alert("Você precisa estar logado para reportar um bug!");
+      // Opcional: Redirecionar para tela de login ou abrir modal de login
+      // openLoginModal();
+      return;
+    }
+
     bugReportOverlay.classList.add("active");
     if (input) input.blur();
   });
@@ -722,6 +752,17 @@ if (bugReportForm) {
   bugReportForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const user = getLoggedUser();
+
+    // Segunda camada de proteção (caso o formulário seja forçado)
+    if (!user) {
+      if (bugFeedbackMsg) {
+        bugFeedbackMsg.textContent = "Sessão expirada. Faça login para reportar.";
+        bugFeedbackMsg.style.color = "#ff0066";
+      }
+      return;
+    }
+
     const categoryEl = document.getElementById("bugCategory");
     const descriptionEl = document.getElementById("bugDescription");
 
@@ -736,13 +777,17 @@ if (bugReportForm) {
       return;
     }
 
-    // 🛑 COLE A SUA NOVA URL DE WEBHOOK DO DISCORD AQUI ABAIXO:
+    // 🛑 COLE A SUA URL DE WEBHOOK DO DISCORD AQUI:
     const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1541949547255955476/Tgvh7uqpFbS1CrBLKhQaEunXUb5SBdKtsSLScu3N2JlpkiWHiJT_XJBxpfKMe2BbRA98";
 
     if (bugFeedbackMsg) {
       bugFeedbackMsg.textContent = "Enviando relatório...";
       bugFeedbackMsg.style.color = "#00ffcc";
     }
+
+    // Identificação do usuário enviada para o Webhook do Discord
+    const username = user.username || user.name || user.email || "Usuário Autenticado";
+    const userId = user.id || user.uid || "N/A";
 
     const payload = {
       username: "Bug Reporter Bot",
@@ -751,6 +796,11 @@ if (bugReportForm) {
         title: "Novo Bug Reportado!",
         color: 16711782, // Cor Rosa Cyberpunk
         fields: [
+          {
+            name: "👤 Enviado por",
+            value: `${username} (ID: ${userId})`,
+            inline: false
+          },
           {
             name: "🎵 Música Selecionada",
             value: currentSongKey || "Nenhuma",
@@ -767,7 +817,7 @@ if (bugReportForm) {
           }
         ],
         footer: {
-          text: "Sistema de Report de Bugs"
+          text: "Sistema de Report de Bugs • Usuário Autenticado"
         },
         timestamp: new Date().toISOString()
       }]
