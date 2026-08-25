@@ -141,30 +141,38 @@ h1 {
   transform: translateY(-1px);
 }
 
-/* Botão de Reportar Bug (Navegação Superior) */
-.bug-btn {
+/* Botão Flutuante de Reportar Bug (Canto Inferior Esquerdo) */
+#bugReportBtn,
+.bug-btn-fixed {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 99;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-family: 'Orbitron', sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 6px 14px;
-  background: rgba(255, 0, 102, 0.12);
-  border: 1px solid #ff0066;
-  border-radius: 12px;
+  padding: 10px 18px;
+  background: rgba(18, 18, 20, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 0, 102, 0.5);
+  border-radius: 20px;
   color: #ff0066;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 1px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(255, 0, 102, 0.1);
   transition: all 0.2s ease-in-out;
 }
 
-.bug-btn:hover {
+#bugReportBtn:hover,
+.bug-btn-fixed:hover {
   background: #ff0066;
   color: #0a0a0f;
-  box-shadow: 0 0 15px rgba(255, 0, 102, 0.6);
-  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(255, 0, 102, 0.7);
+  transform: translateY(-3px);
 }
 
 /* Botões Globais */
@@ -432,5 +440,6 @@ h1 {
   .subtitle { font-size: 0.8rem; letter-spacing: 3px; }
   .btn { padding: 12px 24px; font-size: 0.95rem; }
   .top-auth-bar { top: 10px; right: 10px; padding: 6px 12px; }
+  #bugReportBtn, .bug-btn-fixed { bottom: 15px; left: 15px; padding: 8px 14px; font-size: 0.7rem; }
   .bug-modal-content { padding: 20px; }
 }
