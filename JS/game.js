@@ -924,34 +924,28 @@ const newsOverlay = document.getElementById("newsOverlay");
 const closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
 const newsList = document.getElementById("newsList");
 
-const adminBtn = document.getElementById("adminBtn");
 const adminOverlay = document.getElementById("adminOverlay");
 const closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
 const adminPostForm = document.getElementById("adminPostForm");
 
-// Armazenamento local de posts (Fallback)
 let announcements = JSON.parse(localStorage.getItem("typing_hero_announcements") || "[]");
 
-// Exibir botão de Admin com o atalho "Shift + A"
+// Atalho do Criador: Aperte 'Shift + A' para abrir a tela de publicar
 window.addEventListener("keydown", (e) => {
   if (e.shiftKey && (e.key === "A" || e.key === "a")) {
-    const password = prompt("Senha do Criador:");
-    if (password === "1234") { // DEFINA SUA SENHA AQUI
-      showNotification("Acesso de Criador Liberado!", false);
-      if (adminBtn) adminBtn.style.display = "inline-block";
+    const pwd = prompt("Senha do Criador:");
+    if (pwd === "1234") { // Defina sua senha aqui
       openAdminModal();
-    } else if (password !== null) {
-      showNotification("Senha incorreta!", true);
+    } else if (pwd !== null) {
+      if (typeof showNotification === "function") showNotification("Senha Incorreta", true);
     }
   }
 });
 
-// --- FUNÇÕES DE INTERFACE DO USUÁRIO (VER NOVIDADES) ---
 function renderAnnouncements() {
   if (!newsList) return;
-  
   if (announcements.length === 0) {
-    newsList.innerHTML = `<p style="color: #888;">Nenhuma novidade recente registrada.</p>`;
+    newsList.innerHTML = `<div class="news-empty" style="color: #666; font-size: 0.9rem;">Nenhuma atualização publicada ainda.</div>`;
     return;
   }
 
@@ -965,8 +959,8 @@ function renderAnnouncements() {
 }
 
 function checkUnreadNews() {
-  const lastReadCount = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
-  if (announcements.length > lastReadCount && newsModalBtn) {
+  const lastRead = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
+  if (announcements.length > lastRead && newsModalBtn) {
     newsModalBtn.classList.add("has-unread-news");
   }
 }
@@ -975,8 +969,6 @@ function openNewsModal() {
   if (newsOverlay) {
     newsOverlay.classList.add("active");
     renderAnnouncements();
-    
-    // Marca como lido
     localStorage.setItem("last_read_news_count", announcements.length.toString());
     if (newsModalBtn) newsModalBtn.classList.remove("has-unread-news");
   }
@@ -986,10 +978,6 @@ function closeNewsModal() {
   if (newsOverlay) newsOverlay.classList.remove("active");
 }
 
-if (newsModalBtn) newsModalBtn.addEventListener("click", openNewsModal);
-if (closeNewsModalBtn) closeNewsModalBtn.addEventListener("click", closeNewsModal);
-
-// --- FUNÇÕES DE ADMIN (CRIADOR POSTAR) ---
 function openAdminModal() {
   if (adminOverlay) adminOverlay.classList.add("active");
 }
@@ -998,49 +986,45 @@ function closeAdminModal() {
   if (adminOverlay) adminOverlay.classList.remove("active");
 }
 
-if (adminBtn) adminBtn.addEventListener("click", openAdminModal);
+if (newsModalBtn) newsModalBtn.addEventListener("click", openNewsModal);
+if (closeNewsModalBtn) closeNewsModalBtn.addEventListener("click", closeNewsModal);
 if (closeAdminModalBtn) closeAdminModalBtn.addEventListener("click", closeAdminModal);
 
+// Fechar ao clicar fora da janela (no fundo escuro)
+window.addEventListener("click", (e) => {
+  if (e.target === newsOverlay) closeNewsModal();
+  if (e.target === adminOverlay) closeAdminModal();
+});
+
 if (adminPostForm) {
-  adminPostForm.addEventListener("submit", async (e) => {
+  adminPostForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    
-    const titleInput = document.getElementById("postTitle");
-    const contentInput = document.getElementById("postContent");
-    
+    const title = document.getElementById("postTitle").value.trim();
+    const content = document.getElementById("postContent").value.trim();
+
     const newPost = {
       id: Date.now(),
-      title: titleInput.value.trim(),
-      content: contentInput.value.trim(),
+      title,
+      content,
       date: new Date().toLocaleDateString("pt-BR") + " às " + new Date().toLocaleTimeString("pt-BR", {hour: '2-digit', minute:'2-digit'})
     };
 
-    // Adiciona o novo post no topo da lista
     announcements.unshift(newPost);
-    
-    // Salva Localmente e Notifica
     localStorage.setItem("typing_hero_announcements", JSON.stringify(announcements));
-    showNotification("Anúncio publicado com sucesso!", false);
     
-    titleInput.value = "";
-    contentInput.value = "";
+    if (typeof showNotification === "function") {
+      showNotification("Update publicado com sucesso!", false);
+    }
+
+    adminPostForm.reset();
     closeAdminModal();
-    
-    // Notifica visualmente se a tela de novidades estiver aberta
-    renderAnnouncements();
+    checkUnreadNews();
   });
 }
 
-// Utilitário para evitar código malicioso nos textos
 function escapeHtml(text) {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-// Inicializa checagem ao carregar a página
 renderAnnouncements();
 checkUnreadNews();
