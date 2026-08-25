@@ -105,6 +105,39 @@
           <button class="btn btn-secondary" id="menuBtn">MENU PRINCIPAL</button>
         </div>
       </div>
+
+<!-- Botão para abrir o Modal de Bugs -->
+<button id="bugReportBtn" class="bug-btn">🐛 Reportar Bug</button>
+
+<!-- Modal de Reportar Bug -->
+<div id="bugReportOverlay" class="bug-modal-overlay">
+  <div class="bug-modal-content">
+    <button id="closeBugModalBtn" class="bug-close-btn">&times;</button>
+    <h2>Reportar um Problema</h2>
+    <p>Encontrou um erro ou falha no jogo? Avise-nos abaixo!</p>
+    
+    <form id="bugReportForm">
+      <div class="form-group">
+        <label for="bugCategory">Categoria:</label>
+        <select id="bugCategory" required>
+          <option value="audio">Áudio / Música</option>
+          <option value="typing">Digitação / Texto</option>
+          <option value="visual">Interface / Visual</option>
+          <option value="other">Outro</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="bugDescription">Descrição do Bug:</label>
+        <textarea id="bugDescription" rows="4" placeholder="Descreva o que aconteceu..." required></textarea>
+      </div>
+
+      <button type="submit" class="submit-bug-btn">Enviar Relatório</button>
+    </form>
+    
+    <div id="bugFeedbackMsg" class="bug-feedback-msg"></div>
+  </div>
+</div>
     <!-- Vercel Web Analytics -->
     <script>
         window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
