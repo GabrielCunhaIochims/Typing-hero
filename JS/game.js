@@ -1228,4 +1228,4 @@ window.addEventListener("click", (e) => {
 renderAnnouncements();
 checkUnreadNews();
 
-crypto.subtle.digest("SHA-256", new TextEncoder().encode("IamADMman123")).then(b => console.log(Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('')));
+
