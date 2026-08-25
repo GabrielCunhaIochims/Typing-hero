@@ -21,7 +21,7 @@ body {
   padding: 10px;
 }
 
-/* Fundo com Grid e Brilho Float */
+/* --- FUNDO COM GRID E BRILHO FLOAT --- */
 .bg-grid {
   position: fixed;
   inset: 0;
@@ -53,7 +53,7 @@ body {
   50% { transform: translate(50px, 30px) scale(1.1); }
 }
 
-/* Títulos */
+/* --- TÍTULOS --- */
 h1 {
   font-family: 'Orbitron', sans-serif;
   font-size: 3.5rem;
@@ -79,7 +79,7 @@ h1 {
   text-align: center;
 }
 
-/* Barra de Autenticação Topo */
+/* --- BARRA DE AUTENTICAÇÃO E TOPO --- */
 .top-auth-bar {
   position: absolute;
   top: 18px;
@@ -141,7 +141,47 @@ h1 {
   transform: translateY(-1px);
 }
 
-/* Botão Flutuante de Reportar Bug (Canto Inferior Esquerdo) */
+/* Botão Patch Notes Integrado no Topo */
+.cyber-nav-btn {
+  background: rgba(0, 255, 204, 0.08);
+  border: 1px solid #00ffcc;
+  color: #00ffcc;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
+}
+
+.cyber-nav-btn:hover {
+  background: #00ffcc;
+  color: #121214;
+  box-shadow: 0 0 14px rgba(0, 255, 204, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Animação para avisar de novos Patch Notes */
+.has-unread-news {
+  border-color: #ff0066 !important;
+  color: #ff0066 !important;
+  box-shadow: 0 0 12px rgba(255, 0, 106, 0.4) !important;
+  animation: pulse-pink 1.5s infinite alternate;
+}
+
+@keyframes pulse-pink {
+  0% { box-shadow: 0 0 8px rgba(255, 0, 106, 0.3); }
+  100% { box-shadow: 0 0 18px rgba(255, 0, 106, 0.8); }
+}
+
+/* --- BOTÃO FLUTUANTE REPORTAR BUG --- */
 #bugReportBtn,
 .bug-btn-fixed {
   position: fixed;
@@ -175,7 +215,7 @@ h1 {
   transform: translateY(-3px);
 }
 
-/* Botões Globais */
+/* --- BOTÕES GLOBAIS --- */
 .btn-group { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
 
 .btn {
@@ -216,7 +256,7 @@ h1 {
   color: #fff;
 }
 
-/* Leaderboard */
+/* --- LEADERBOARD --- */
 .leaderboard-section {
   margin-top: 20px;
   background: rgba(18, 18, 20, 0.85);
@@ -267,7 +307,7 @@ h1 {
   font-style: italic;
 }
 
-/* Overlay Global / Game Over */
+/* --- OVERLAY GLOBAL / GAME OVER --- */
 .overlay {
   position: fixed;
   inset: 0;
@@ -287,7 +327,7 @@ h1 {
 .overlay h2 { font-family: 'Orbitron', sans-serif; font-size: 3rem; margin-bottom: 20px; text-align: center; }
 .overlay-stats { display: flex; gap: 20px; margin: 20px 0 40px; flex-wrap: wrap; justify-content: center; }
 
-/* Modal de Reportar Bug Cyberpunk */
+/* --- MODAL DE REPORTAR BUG --- */
 .bug-modal-overlay {
   position: fixed;
   inset: 0;
@@ -303,10 +343,7 @@ h1 {
   padding: 20px;
 }
 
-.bug-modal-overlay.active {
-  opacity: 1;
-  pointer-events: all;
-}
+.bug-modal-overlay.active { opacity: 1; pointer-events: all; }
 
 .bug-modal-content {
   background: rgba(18, 18, 20, 0.95);
@@ -321,9 +358,7 @@ h1 {
   transition: transform 0.3s cubic-bezier(0.1, 0.8, 0.3, 1);
 }
 
-.bug-modal-overlay.active .bug-modal-content {
-  transform: translateY(0);
-}
+.bug-modal-overlay.active .bug-modal-content { transform: translateY(0); }
 
 .bug-modal-content h2 {
   font-family: 'Orbitron', sans-serif;
@@ -335,11 +370,7 @@ h1 {
   text-shadow: 0 0 8px rgba(255, 0, 102, 0.5);
 }
 
-.bug-modal-content p {
-  color: #8d8d99;
-  font-size: 0.95rem;
-  margin-bottom: 20px;
-}
+.bug-modal-content p { color: #8d8d99; font-size: 0.95rem; margin-bottom: 20px; }
 
 .bug-close-btn {
   position: absolute;
@@ -354,49 +385,7 @@ h1 {
   transition: color 0.2s, transform 0.2s;
 }
 
-.bug-close-btn:hover {
-  color: #ff0066;
-  transform: scale(1.1);
-}
-
-.form-group {
-  margin-bottom: 18px;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.8rem;
-  color: #00ffcc;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-}
-
-.form-group select,
-.form-group textarea {
-  background: rgba(10, 10, 15, 0.8);
-  border: 1px solid rgba(0, 255, 204, 0.25);
-  border-radius: 10px;
-  color: #e0e0e0;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 1rem;
-  padding: 10px 14px;
-  outline: none;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.form-group select:focus,
-.form-group textarea:focus {
-  border-color: #00ffcc;
-  box-shadow: 0 0 12px rgba(0, 255, 204, 0.3);
-}
-
-.form-group option {
-  background: #121214;
-  color: #e0e0e0;
-}
+.bug-close-btn:hover { color: #ff0066; transform: scale(1.1); }
 
 .submit-bug-btn {
   width: 100%;
@@ -434,55 +423,7 @@ h1 {
   text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
 }
 
-/* Ajustes Responsivos Globais */
-@media (max-width: 768px) {
-  h1 { font-size: 2.2rem; margin-top: 40px; }
-  .subtitle { font-size: 0.8rem; letter-spacing: 3px; }
-  .btn { padding: 12px 24px; font-size: 0.95rem; }
-  .top-auth-bar { top: 10px; right: 10px; padding: 6px 12px; }
-  #bugReportBtn, .bug-btn-fixed { bottom: 15px; left: 15px; padding: 8px 14px; font-size: 0.7rem; }
-  .bug-modal-content { padding: 20px; }
-}
-
-/* --- BOTÃO DE PATCH NOTES (Estilo Cyberpunk) --- */
-.cyber-btn-outline {
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid #00ffcc;
-  color: #00ffcc;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-family: inherit;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  text-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
-  box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
-}
-
-.cyber-btn-outline:hover {
-  background: #00ffcc;
-  color: #0a0a12;
-  box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
-  transform: translateY(-2px);
-}
-
-/* Badge de Notificação "NEW!" no botão */
-.has-unread-news {
-  border-color: #ff0066 !important;
-  color: #ff0066 !important;
-  box-shadow: 0 0 12px rgba(255, 0, 106, 0.4) !important;
-  animation: pulse-pink 1.5s infinite alternate;
-}
-
-@keyframes pulse-pink {
-  0% { box-shadow: 0 0 8px rgba(255, 0, 106, 0.3); }
-  100% { box-shadow: 0 0 18px rgba(255, 0, 106, 0.8); }
-}
-
-/* --- MODAIS FLUTUANTES (ESCONDIDOS POR PADRÃO) --- */
+/* --- SISTEMA DE MODAIS CYBERPUNK (OCULTOS POR PADRÃO) --- */
 .cyber-modal-overlay {
   position: fixed;
   top: 0;
@@ -521,12 +462,16 @@ h1 {
   transform: translateY(0);
 }
 
-.admin-card {
-  border-color: #ff0066;
-  box-shadow: 0 0 25px rgba(255, 0, 106, 0.25);
+/* Modal Especial para Acesso Secreto / Painel Admin */
+.secret-card {
+  border-color: #ff0066 !important;
+  box-shadow: 0 0 25px rgba(255, 0, 106, 0.3) !important;
 }
 
-/* Cabeçalho do Modal */
+.secret-card .cyber-modal-header h2 {
+  color: #ff0066 !important;
+}
+
 .cyber-modal-header {
   display: flex;
   justify-content: space-between;
@@ -537,14 +482,11 @@ h1 {
 }
 
 .cyber-modal-header h2 {
+  font-family: 'Orbitron', sans-serif;
   font-size: 1.15rem;
   margin: 0;
   color: #00ffcc;
   letter-spacing: 1px;
-}
-
-.admin-card .cyber-modal-header h2 {
-  color: #ff0066;
 }
 
 .close-btn {
@@ -553,10 +495,12 @@ h1 {
   color: #888;
   font-size: 1.5rem;
   cursor: pointer;
+  transition: color 0.2s;
 }
+
 .close-btn:hover { color: #fff; }
 
-/* Lista de Cards de Update */
+/* Lista de Notificações nos Patch Notes */
 .news-list-container {
   max-height: 320px;
   overflow-y: auto;
@@ -575,6 +519,7 @@ h1 {
 }
 
 .news-card h4 {
+  font-family: 'Orbitron', sans-serif;
   color: #00ffcc;
   margin: 0 0 6px 0;
   font-size: 1rem;
@@ -592,7 +537,7 @@ h1 {
   color: #666677;
 }
 
-/* Formulários */
+/* --- FORMULÁRIOS & CAMPOS CYBERPUNK --- */
 .cyber-form {
   display: flex;
   flex-direction: column;
@@ -600,28 +545,47 @@ h1 {
   text-align: left;
 }
 
+.form-group {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
 .form-group label {
+  font-family: 'Orbitron', sans-serif;
   font-size: 0.8rem;
-  color: #aaa;
-  margin-bottom: 6px;
+  color: #00ffcc;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
   display: block;
 }
 
+.form-group select,
+.form-group textarea,
 .cyber-input {
   width: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  padding: 10px;
-  color: #fff;
-  font-family: inherit;
-  box-sizing: border-box;
+  background: rgba(10, 10, 15, 0.8);
+  border: 1px solid rgba(0, 255, 204, 0.25);
+  border-radius: 10px;
+  color: #e0e0e0;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
+.form-group select:focus,
+.form-group textarea:focus,
 .cyber-input:focus {
-  outline: none;
-  border-color: #ff0066;
-  box-shadow: 0 0 8px rgba(255, 0, 106, 0.4);
+  border-color: #00ffcc;
+  box-shadow: 0 0 12px rgba(0, 255, 204, 0.3);
+}
+
+.form-group option {
+  background: #121214;
+  color: #e0e0e0;
 }
 
 .cyber-textarea {
@@ -629,17 +593,34 @@ h1 {
   resize: vertical;
 }
 
-.cyber-btn-primary {
-  background: #ff0066;
-  color: white;
-  border: none;
+.cyber-btn-primary.pink {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
   padding: 12px;
-  border-radius: 6px;
-  font-weight: bold;
+  background: linear-gradient(135deg, #ff0066, #cc0052);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
   cursor: pointer;
-  width: 100%;
-  box-shadow: 0 0 12px rgba(255, 0, 106, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 15px rgba(255, 0, 102, 0.3);
+  transition: all 0.2s ease-in-out;
 }
-.cyber-btn-primary:hover {
-  background: #ff3385;
+
+.cyber-btn-primary.pink:hover {
+  background: linear-gradient(135deg, #ff1a75, #e6005c);
+  box-shadow: 0 6px 20px rgba(255, 0, 102, 0.5);
+  transform: translateY(-2px);
+}
+
+/* --- ADAPTAÇÕES RESPONSIVAS --- */
+@media (max-width: 768px) {
+  h1 { font-size: 2.2rem; margin-top: 50px; }
+  .subtitle { font-size: 0.8rem; letter-spacing: 3px; }
+  .btn { padding: 12px 24px; font-size: 0.95rem; }
+  .top-auth-bar { top: 10px; right: 10px; padding: 6px 12px; }
+  #bugReportBtn, .bug-btn-fixed { bottom: 15px; left: 15px; padding: 8px 14px; font-size: 0.7rem; }
+  .bug-modal-content, .cyber-modal-card { padding: 20px; }
 }
