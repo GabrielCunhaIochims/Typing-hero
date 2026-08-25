@@ -1028,3 +1028,204 @@ function escapeHtml(text) {
 
 renderAnnouncements();
 checkUnreadNews();
+
+// ==========================================
+// CONFIGURAÇÕES E GERENCIAMENTO DE ESTADO
+// ==========================================
+
+// Hash SHA-256 da senha "1234" (Altere se desejar outra senha)
+const ADMIN_PASSWORD_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+
+// Elementos do Modal de Patch Notes e Painel Admin
+const newsModalBtn = document.getElementById("newsModalBtn");
+const newsOverlay = document.getElementById("newsOverlay");
+const closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
+const newsList = document.getElementById("newsList");
+
+const passwordOverlay = document.getElementById("passwordOverlay");
+const closePasswordModalBtn = document.getElementById("closePasswordModalBtn");
+const adminPasswordInput = document.getElementById("adminPasswordInput");
+const submitPasswordBtn = document.getElementById("submitPasswordBtn");
+
+const adminOverlay = document.getElementById("adminOverlay");
+const closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
+const adminPostForm = document.getElementById("adminPostForm");
+
+// Elementos do Modal de Reportar Bug
+const bugReportBtn = document.getElementById("bugReportBtn");
+const bugReportOverlay = document.getElementById("bugReportOverlay");
+const closeBugModalBtn = document.getElementById("closeBugModalBtn");
+const bugReportForm = document.getElementById("bugReportForm");
+const bugFeedbackMsg = document.getElementById("bugFeedbackMsg");
+
+// Carregar avisos salvos no LocalStorage
+let announcements = JSON.parse(localStorage.getItem("typing_hero_announcements") || "[]");
+
+// ==========================================
+// FUNÇÕES UTILITÁRIAS
+// ==========================================
+
+// Função para gerar Hash SHA-256 (Ocultar Senha)
+async function sha256(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Sanitização contra XSS em mensagens da comunidade
+function escapeHtml(text) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// ==========================================
+// SISTEMA DE PATCH NOTES & ANÚNCIOS
+// ==========================================
+
+function renderAnnouncements() {
+  if (!newsList) return;
+  if (announcements.length === 0) {
+    newsList.innerHTML = `<div style="color: #666; font-size: 0.85rem; padding: 10px; text-align: center;">Nenhuma atualização publicada ainda.</div>`;
+    return;
+  }
+
+  newsList.innerHTML = announcements.map(post => `
+    <div class="news-card">
+      <h4>${escapeHtml(post.title)}</h4>
+      <p>${escapeHtml(post.content)}</p>
+      <span class="news-date">📅 ${post.date}</span>
+    </div>
+  `).join("");
+}
+
+function checkUnreadNews() {
+  const lastRead = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
+  if (announcements.length > lastRead && newsModalBtn) {
+    newsModalBtn.classList.add("has-unread-news");
+  }
+}
+
+// Abrir Modal de Patch Notes
+if (newsModalBtn) {
+  newsModalBtn.addEventListener("click", () => {
+    if (newsOverlay) newsOverlay.classList.add("active");
+    renderAnnouncements();
+    localStorage.setItem("last_read_news_count", announcements.length.toString());
+    newsModalBtn.classList.remove("has-unread-news");
+  });
+}
+
+// ==========================================
+// ATALHO SECRETO E AUTENTICAÇÃO DO CRIADOR
+// ==========================================
+
+// Pressione Shift + A para abrir a tela de autenticação
+window.addEventListener("keydown", (e) => {
+  if (e.shiftKey && (e.key === "A" || e.key === "a")) {
+    if (passwordOverlay) {
+      passwordOverlay.classList.add("active");
+      if (adminPasswordInput) {
+        adminPasswordInput.value = "";
+        adminPasswordInput.focus();
+      }
+    }
+  }
+});
+
+// Autenticação da Senha
+async function verifyPassword() {
+  if (!adminPasswordInput) return;
+  const typedPassword = adminPasswordInput.value;
+  const hash = await sha256(typedPassword);
+
+  if (hash === ADMIN_PASSWORD_HASH) {
+    if (passwordOverlay) passwordOverlay.classList.remove("active");
+    if (adminOverlay) adminOverlay.classList.add("active");
+  } else {
+    alert("Senha incorreta!");
+    adminPasswordInput.value = "";
+  }
+}
+
+if (submitPasswordBtn) submitPasswordBtn.addEventListener("click", verifyPassword);
+if (adminPasswordInput) {
+  adminPasswordInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") verifyPassword();
+  });
+}
+
+// Publicar Novo Aviso no Painel do Criador
+if (adminPostForm) {
+  adminPostForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const title = document.getElementById("postTitle").value.trim();
+    const content = document.getElementById("postContent").value.trim();
+
+    const newPost = {
+      id: Date.now(),
+      title,
+      content,
+      date: new Date().toLocaleDateString("pt-BR") + " às " + new Date().toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })
+    };
+
+    announcements.unshift(newPost);
+    localStorage.setItem("typing_hero_announcements", JSON.stringify(announcements));
+
+    adminPostForm.reset();
+    if (adminOverlay) adminOverlay.classList.remove("active");
+    checkUnreadNews();
+  });
+}
+
+// ==========================================
+// MODAL DE REPORTAR BUG
+// ==========================================
+
+if (bugReportBtn) {
+  bugReportBtn.addEventListener("click", () => {
+    if (bugReportOverlay) bugReportOverlay.classList.add("active");
+  });
+}
+
+if (closeBugModalBtn) {
+  closeBugModalBtn.addEventListener("click", () => {
+    if (bugReportOverlay) bugReportOverlay.classList.remove("active");
+  });
+}
+
+if (bugReportForm) {
+  bugReportForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (bugFeedbackMsg) {
+      bugFeedbackMsg.className = "bug-feedback-msg success";
+      bugFeedbackMsg.textContent = "Obrigado! Relatório enviado com sucesso.";
+    }
+
+    setTimeout(() => {
+      bugReportForm.reset();
+      if (bugFeedbackMsg) bugFeedbackMsg.textContent = "";
+      if (bugReportOverlay) bugReportOverlay.classList.remove("active");
+    }, 2000);
+  });
+}
+
+// ==========================================
+// FECHAMENTO GERAL DE MODAIS (FECHAR NO X OU FORA)
+// ==========================================
+
+if (closeNewsModalBtn) closeNewsModalBtn.addEventListener("click", () => newsOverlay.classList.remove("active"));
+if (closePasswordModalBtn) closePasswordModalBtn.addEventListener("click", () => passwordOverlay.classList.remove("active"));
+if (closeAdminModalBtn) closeAdminModalBtn.addEventListener("click", () => adminOverlay.classList.remove("active"));
+
+window.addEventListener("click", (e) => {
+  if (e.target === newsOverlay) newsOverlay.classList.remove("active");
+  if (e.target === passwordOverlay) passwordOverlay.classList.remove("active");
+  if (e.target === adminOverlay) adminOverlay.classList.remove("active");
+  if (e.target === bugReportOverlay) bugReportOverlay.classList.remove("active");
+});
+
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+renderAnnouncements();
+checkUnreadNews();
+
+crypto.subtle.digest("SHA-256", new TextEncoder().encode("IamADMman123")).then(b => console.log(Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('')));
