@@ -687,7 +687,7 @@ if (input) {
   input.addEventListener("paste", (e) => e.preventDefault());
 }
 
-// --- CONTROLE DO MODAL DE BUGS ---
+// --- CONTROLE DO MODAL DE BUGS E ENVIO PARA O DISCORD ---
 if (bugReportBtn && bugReportOverlay) {
   bugReportBtn.addEventListener("click", () => {
     bugReportOverlay.classList.add("active");
@@ -719,7 +719,7 @@ if (bugReportOverlay) {
 }
 
 if (bugReportForm) {
-  bugReportForm.addEventListener("submit", (e) => {
+  bugReportForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const categoryEl = document.getElementById("bugCategory");
@@ -728,25 +728,80 @@ if (bugReportForm) {
     const category = categoryEl ? categoryEl.value : "Geral";
     const description = descriptionEl ? descriptionEl.value : "";
 
-    const bugData = {
-      songKey: currentSongKey || "Desconhecida",
-      category: category,
-      description: description,
-      date: new Date().toLocaleString()
-    };
-
-    // Salva no localStorage do usuário
-    const existingBugs = JSON.parse(localStorage.getItem("reportedBugs") || "[]");
-    existingBugs.push(bugData);
-    localStorage.setItem("reportedBugs", JSON.stringify(existingBugs));
-
-    if (bugFeedbackMsg) {
-      bugFeedbackMsg.textContent = "✓ Relatório enviado com sucesso! Obrigado.";
-      bugFeedbackMsg.className = "bug-feedback-msg success";
+    if (!description.trim()) {
+      if (bugFeedbackMsg) {
+        bugFeedbackMsg.textContent = "Por favor, descreva o problema.";
+        bugFeedbackMsg.style.color = "#ff0066";
+      }
+      return;
     }
 
-    setTimeout(() => {
-      closeBugModal();
-    }, 1500);
+    // 🛑 COLE A SUA NOVA URL DE WEBHOOK DO DISCORD AQUI ABAIXO:
+    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1541949547255955476/Tgvh7uqpFbS1CrBLKhQaEunXUb5SBdKtsSLScu3N2JlpkiWHiJT_XJBxpfKMe2BbRA98";
+
+    if (bugFeedbackMsg) {
+      bugFeedbackMsg.textContent = "Enviando relatório...";
+      bugFeedbackMsg.style.color = "#00ffcc";
+    }
+
+    const payload = {
+      username: "Bug Reporter Bot",
+      avatar_url: "https://cdn-icons-png.flaticon.com/512/682/682009.png",
+      embeds: [{
+        title: "Novo Bug Reportado!",
+        color: 16711782, // Cor Rosa Cyberpunk
+        fields: [
+          {
+            name: "🎵 Música Selecionada",
+            value: currentSongKey || "Nenhuma",
+            inline: true
+          },
+          {
+            name: "📌 Categoria",
+            value: category,
+            inline: true
+          },
+          {
+            name: "📝 Descrição / Relato",
+            value: description
+          }
+        ],
+        footer: {
+          text: "Sistema de Report de Bugs"
+        },
+        timestamp: new Date().toISOString()
+      }]
+    };
+
+    try {
+      const response = await fetch(DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        if (bugFeedbackMsg) {
+          bugFeedbackMsg.textContent = "✓ Relatório enviado ao Discord com sucesso!";
+          bugFeedbackMsg.className = "bug-feedback-msg success";
+        }
+
+        bugReportForm.reset();
+
+        setTimeout(() => {
+          closeBugModal();
+        }, 1500);
+      } else {
+        throw new Error("Erro na resposta do Webhook");
+      }
+    } catch (error) {
+      console.error("Erro ao enviar o bug:", error);
+      if (bugFeedbackMsg) {
+        bugFeedbackMsg.textContent = "Erro ao enviar o relato. Tente novamente.";
+        bugFeedbackMsg.style.color = "#ff0066";
+      }
+    }
   });
 }
