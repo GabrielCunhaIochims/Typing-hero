@@ -834,7 +834,7 @@ if (bugReportForm) {
     }
 
     // 🛑 COLE A SUA URL DE WEBHOOK DO DISCORD AQUI ABAIXO:
-    const DISCORD_WEBHOOK_URL = "SUA_NOVA_URL_DO_WEBHOOK_AQUI";
+    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1541949547255955476/Tgvh7uqpFbS1CrBLKhQaEunXUb5SBdKtsSLScu3N2JlpkiWHiJT_XJBxpfKMe2BbRA98";
 
     if (bugFeedbackMsg) {
       bugFeedbackMsg.textContent = "Enviando relatório...";
@@ -848,26 +848,26 @@ if (bugReportForm) {
       username: "Bug Reporter Bot",
       avatar_url: "https://cdn-icons-png.flaticon.com/512/682/682009.png",
       embeds: [{
-        title: "🐛 Novo Bug Reportado!",
+        title: "Novo Bug Reportado!",
         color: 16711782, // Cor Rosa Cyberpunk
         fields: [
           {
-            name: "👤 Enviado por",
+            name: "Enviado por",
             value: `${username} (ID: ${userId})`,
             inline: false
           },
           {
-            name: "🎵 Música Selecionada",
+            name: "Música Selecionada",
             value: currentSongKey || "Nenhuma",
             inline: true
           },
           {
-            name: "📌 Categoria",
+            name: "Categoria",
             value: category,
             inline: true
           },
           {
-            name: "📝 Descrição / Relato",
+            name: "Descrição / Relato",
             value: description
           }
         ],
