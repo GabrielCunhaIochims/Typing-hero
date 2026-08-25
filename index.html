@@ -138,6 +138,39 @@
     <div id="bugFeedbackMsg" class="bug-feedback-msg"></div>
   </div>
 </div>
+    <!-- Botão para o Usuário Ver as Novidades -->
+<button id="newsModalBtn" class="cyber-btn">📢 Novidades / Update Logs</button>
+
+<!-- Botão secreto/exclusivo do Criador -->
+<button id="adminBtn" class="cyber-btn admin-only" style="display: none;">⚙️ Criador (Postar Update)</button>
+
+<!-- MODAL DE NOVIDADES (Para os Usuários) -->
+<div id="newsOverlay" class="modal-overlay">
+  <div class="modal-card">
+    <h2>📢 NOVIDADES E CORREÇÕES DE BUGS</h2>
+    <div id="newsList" class="news-list-container">
+      <p class="loading-text">Carregando novidades...</p>
+    </div>
+    <button id="closeNewsModalBtn" class="cyber-btn">FECHAR</button>
+  </div>
+</div>
+
+<!-- MODAL DE ADMINISTRAÇÃO (Para o Criador Postar) -->
+<div id="adminOverlay" class="modal-overlay">
+  <div class="modal-card">
+    <h2>⚙️ PAINEL DO CRIADOR</h2>
+    <form id="adminPostForm">
+      <label>Título / Tipo:</label>
+      <input type="text" id="postTitle" placeholder="Ex: Bug Corrigido / Atualização v1.2" required />
+      
+      <label>Mensagem para os Usuários:</label>
+      <textarea id="postContent" placeholder="Ex: Recebemos um bug sobre os combos e corrigimos! Aproveitem." required></textarea>
+      
+      <button type="submit" class="cyber-btn">POSTAR PARA OS USUÁRIOS</button>
+    </form>
+    <button id="closeAdminModalBtn" class="cyber-btn secondary">CANCELAR</button>
+  </div>
+</div>
     <!-- Vercel Web Analytics -->
     <script>
         window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
