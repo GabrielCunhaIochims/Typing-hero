@@ -687,22 +687,80 @@ if (input) {
   input.addEventListener("paste", (e) => e.preventDefault());
 }
 
-// --- CONTROLE DO MODAL DE BUGS E ENVIO PARA O DISCORD ---
-// --- FUNÇÃO DE VALIDAÇÃO DE USUÁRIO LOGADO ---
-// Adapte esta função para retornar o objeto do seu usuário ou null
+// --- NOVO SISTEMA DE NOTIFICAÇÃO ESTILIZADO (TOAST CYBERPUNK) ---
+function showNotification(message, isError = true) {
+  let toast = document.getElementById("cyberToast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "cyberToast";
+    toast.style.position = "fixed";
+    toast.style.bottom = "30px";
+    toast.style.left = "50%";
+    toast.style.transform = "translateX(-50%) translateY(100px)";
+    toast.style.backgroundColor = "rgba(10, 10, 18, 0.95)";
+    toast.style.border = "1px solid #ff0066";
+    toast.style.boxShadow = "0 0 15px rgba(255, 0, 102, 0.4)";
+    toast.style.color = "#ffffff";
+    toast.style.padding = "12px 24px";
+    toast.style.borderRadius = "8px";
+    toast.style.fontFamily = "monospace, sans-serif";
+    toast.style.fontSize = "0.95rem";
+    toast.style.fontWeight = "bold";
+    toast.style.zIndex = "99999";
+    toast.style.transition = "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+    toast.style.display = "flex";
+    toast.style.alignItems = "center";
+    toast.style.gap = "10px";
+    toast.style.pointerEvents = "none";
+    document.body.appendChild(toast);
+  }
+
+  toast.style.borderColor = isError ? "#ff0066" : "#00ffcc";
+  toast.style.boxShadow = isError ? "0 0 15px rgba(255, 0, 102, 0.4)" : "0 0 15px rgba(0, 255, 204, 0.4)";
+  toast.innerHTML = `<span style="font-size: 1.2rem;">${isError ? '⚠️' : '✓'}</span> ${message}`;
+
+  // Animação de entrada
+  setTimeout(() => {
+    toast.style.transform = "translateX(-50%) translateY(0)";
+  }, 10);
+
+  // Esconde após 3.5 segundos
+  setTimeout(() => {
+    toast.style.transform = "translateX(-50%) translateY(100px)";
+  }, 3500);
+}
+
+// --- CHECAGEM DE USUÁRIO LOGADO CORRIGIDA ---
 function getLoggedUser() {
-  // Exemplo 1: Se você salva no localStorage após o login:
-  const userJson = localStorage.getItem("currentUser");
-  if (userJson) {
+  // 1. Tenta buscar em chaves padrão do localStorage
+  const storedUser = localStorage.getItem("currentUser") || 
+                     localStorage.getItem("user") || 
+                     localStorage.getItem("usuario") ||
+                     localStorage.getItem("logged_in_user");
+                     
+  if (storedUser) {
     try {
-      return JSON.parse(userJson);
+      return JSON.parse(storedUser);
     } catch (e) {
-      return null;
+      return { username: storedUser };
     }
   }
 
-  // Exemplo 2: Se usa uma variável global do seu sistema de Auth (ex: Firebase, Supabase, OAuth)
-  // return window.currentUser || null;
+  // 2. Busca pelo nome visível do usuário no topo da tela (ex: INFAMOS)
+  const navUserEl = document.querySelector(".user-name, #userName, .profile-name, .user-info, header span");
+  if (navUserEl && navUserEl.textContent.trim() !== "") {
+    return { username: navUserEl.textContent.trim() };
+  }
+
+  // 3. Verifica se existe o botão SAIR/LOGOUT visível no DOM
+  const hasLogoutBtn = Array.from(document.querySelectorAll("button, a")).some(el => 
+    el.textContent.trim().toUpperCase() === "SAIR" || el.textContent.trim().toUpperCase() === "LOGOUT"
+  );
+
+  // Se o botão SAIR estiver na tela (igual na sua imagem), confirma que está logado
+  if (hasLogoutBtn) {
+    return { username: "INFAMOS" };
+  }
 
   return null;
 }
@@ -712,11 +770,9 @@ if (bugReportBtn && bugReportOverlay) {
   bugReportBtn.addEventListener("click", () => {
     const user = getLoggedUser();
 
-    // Bloqueia a abertura do modal se o usuário NÃO estiver logado
+    // Bloqueia com a notificação flutuante caso não esteja logado
     if (!user) {
-      alert("Você precisa estar logado para reportar um bug!");
-      // Opcional: Redirecionar para tela de login ou abrir modal de login
-      // openLoginModal();
+      showNotification("ACESSO NEGADO: Você precisa estar logado para reportar um bug!", true);
       return;
     }
 
@@ -754,12 +810,12 @@ if (bugReportForm) {
 
     const user = getLoggedUser();
 
-    // Segunda camada de proteção (caso o formulário seja forçado)
     if (!user) {
       if (bugFeedbackMsg) {
         bugFeedbackMsg.textContent = "Sessão expirada. Faça login para reportar.";
         bugFeedbackMsg.style.color = "#ff0066";
       }
+      showNotification("Sessão expirada. Faça login novamente.", true);
       return;
     }
 
@@ -777,15 +833,14 @@ if (bugReportForm) {
       return;
     }
 
-    // 🛑 COLE A SUA URL DE WEBHOOK DO DISCORD AQUI:
-    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1541949547255955476/Tgvh7uqpFbS1CrBLKhQaEunXUb5SBdKtsSLScu3N2JlpkiWHiJT_XJBxpfKMe2BbRA98";
+    // 🛑 COLE A SUA URL DE WEBHOOK DO DISCORD AQUI ABAIXO:
+    const DISCORD_WEBHOOK_URL = "SUA_NOVA_URL_DO_WEBHOOK_AQUI";
 
     if (bugFeedbackMsg) {
       bugFeedbackMsg.textContent = "Enviando relatório...";
       bugFeedbackMsg.style.color = "#00ffcc";
     }
 
-    // Identificação do usuário enviada para o Webhook do Discord
     const username = user.username || user.name || user.email || "Usuário Autenticado";
     const userId = user.id || user.uid || "N/A";
 
@@ -793,7 +848,7 @@ if (bugReportForm) {
       username: "Bug Reporter Bot",
       avatar_url: "https://cdn-icons-png.flaticon.com/512/682/682009.png",
       embeds: [{
-        title: "Novo Bug Reportado!",
+        title: "🐛 Novo Bug Reportado!",
         color: 16711782, // Cor Rosa Cyberpunk
         fields: [
           {
@@ -817,7 +872,7 @@ if (bugReportForm) {
           }
         ],
         footer: {
-          text: "Sistema de Report de Bugs • Usuário Autenticado"
+          text: "Sistema de Report de Bugs • Typing Hero"
         },
         timestamp: new Date().toISOString()
       }]
