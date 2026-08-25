@@ -259,3 +259,125 @@ h1 {
   .subtitle { font-size: 0.8rem; letter-spacing: 3px; }
   .btn { padding: 12px 24px; font-size: 0.95rem; }
 }
+/* Botão de Reportar Bug */
+.bug-btn {
+  background: #ff3366;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.bug-btn:hover {
+  background: #ff0044;
+  transform: scale(1.05);
+}
+
+/* Overlay do Modal */
+.bug-modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+.bug-modal-overlay.active {
+  display: flex;
+}
+
+/* Conteúdo do Modal */
+.bug-modal-content {
+  background: #181824;
+  border: 1px solid #ff3366;
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 450px;
+  color: #fff;
+  position: relative;
+}
+
+.bug-modal-content h2 {
+  margin-top: 0;
+  color: #ff3366;
+}
+
+.bug-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.bug-close-btn:hover {
+  color: #fff;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.form-group select,
+.form-group textarea {
+  background: #0d0d14;
+  border: 1px solid #333;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #ff3366;
+}
+
+.submit-bug-btn {
+  width: 100%;
+  background: #00ccff;
+  color: #000;
+  border: none;
+  padding: 10px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-bug-btn:hover {
+  background: #00eeff;
+}
+
+.bug-feedback-msg {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.bug-feedback-msg.success {
+  color: #00ff88;
+}
