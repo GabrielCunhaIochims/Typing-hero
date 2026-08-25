@@ -155,20 +155,48 @@
   </div>
 </div>
 
-<!-- MODAL DE ADMINISTRAÇÃO (Para o Criador Postar) -->
-<div id="adminOverlay" class="modal-overlay">
-  <div class="modal-card">
-    <h2>⚙️ PAINEL DO CRIADOR</h2>
-    <form id="adminPostForm">
-      <label>Título / Tipo:</label>
-      <input type="text" id="postTitle" placeholder="Ex: Bug Corrigido / Atualização v1.2" required />
-      
-      <label>Mensagem para os Usuários:</label>
-      <textarea id="postContent" placeholder="Ex: Recebemos um bug sobre os combos e corrigimos! Aproveitem." required></textarea>
-      
-      <button type="submit" class="cyber-btn">POSTAR PARA OS USUÁRIOS</button>
+<!-- BOTÃO DE NOVIDADES (Posicione junto do menu superior ou ao lado do REPORTAR BUG) -->
+<button id="newsModalBtn" class="cyber-btn-outline">
+  <span class="btn-icon">📢</span> PATCH NOTES
+</button>
+
+<!-- MODAL DE NOVIDADES DO USUÁRIO -->
+<div id="newsOverlay" class="cyber-modal-overlay">
+  <div class="cyber-modal-card">
+    <div class="cyber-modal-header">
+      <h2>📢 UPDATE LOGS & CORREÇÕES</h2>
+      <button id="closeNewsModalBtn" class="close-btn">&times;</button>
+    </div>
+    
+    <div id="newsList" class="news-list-container">
+      <div class="news-empty">Nenhuma novidade recente registrada.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DO CRIADOR / ADMIN (Abrir com Shift + A ou botão secreto) -->
+<div id="adminOverlay" class="cyber-modal-overlay">
+  <div class="cyber-modal-card admin-card">
+    <div class="cyber-modal-header">
+      <h2>⚙️ PAINEL DO CRIADOR</h2>
+      <button id="closeAdminModalBtn" class="close-btn">&times;</button>
+    </div>
+
+    <form id="adminPostForm" class="cyber-form">
+      <div class="form-group">
+        <label for="postTitle">TÍTULO DA ATUALIZAÇÃO / BUG FIX</label>
+        <input type="text" id="postTitle" class="cyber-input" placeholder="Ex: Bug dos combos resolvido!" required />
+      </div>
+
+      <div class="form-group">
+        <label for="postContent">DETALHES DA MENSAGEM</label>
+        <textarea id="postContent" class="cyber-input cyber-textarea" placeholder="Descreva o que foi corrigido ou adicionado no jogo..." required></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="cyber-btn-primary">PUBLICAR UPDATE</button>
+      </div>
     </form>
-    <button id="closeAdminModalBtn" class="cyber-btn secondary">CANCELAR</button>
   </div>
 </div>
     <!-- Vercel Web Analytics -->
