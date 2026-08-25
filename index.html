@@ -10,202 +10,204 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- Top Bar com Login e Botão de Patch Notes -->
     <div class="top-auth-bar">
         <div class="user-status">
           <span class="user-icon">👤</span>
           <span id="userInfo">Carregando...</span>
         </div>
-        <a id="authActionBtn" href="auth.html" class="auth-btn">
-          <span>Entrar / Cadastrar</span>
-        </a>
-      </div>
-    
-      <div class="screen-flash" id="screenFlash"></div>
-    
-      <button id="quitBtn" onclick="returnToMenu()">SAIR / MENU</button>
-    
-      <audio id="menuMusic" loop></audio>
-      <audio id="gameMusic" loop></audio>
-    
-      <div class="bg-grid"></div>
-      <div class="bg-glow"></div>
-      <div class="bg-glow"></div>
-    
-      <!-- Componente de Rank Up no Canto Superior Direito -->
-      <div class="rank-up-overlay" id="rankUpOverlay">
-        <div class="rank-up-title">RANK UP!</div>
-        <div class="rank-badge-container" id="rankBadgeContainer">
-          <div class="rank-up-badge" id="rankUpBadge">A</div>
-          <div class="rank-up-shockwave" id="rankUpShockwave"></div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <!-- Botão Patch Notes estilizado no topo -->
+          <button id="newsModalBtn" class="cyber-nav-btn">
+            PATCH NOTES
+          </button>
+
+          <a id="authActionBtn" href="auth.html" class="auth-btn">
+            <span>Entrar / Cadastrar</span>
+          </a>
         </div>
+    </div>
+    
+    <div class="screen-flash" id="screenFlash"></div>
+    
+    <button id="quitBtn" onclick="returnToMenu()">SAIR / MENU</button>
+    
+    <audio id="menuMusic" loop></audio>
+    <audio id="gameMusic" loop></audio>
+    
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow"></div>
+    
+    <!-- Componente de Rank Up no Canto Superior Direito -->
+    <div class="rank-up-overlay" id="rankUpOverlay">
+      <div class="rank-up-title">RANK UP!</div>
+      <div class="rank-badge-container" id="rankBadgeContainer">
+        <div class="rank-up-badge" id="rankUpBadge">A</div>
+        <div class="rank-up-shockwave" id="rankUpShockwave"></div>
       </div>
+    </div>
     
-      <h1>TYPING HERO</h1>
-      <p class="subtitle">Escolha o seu ritmo e digite com precisão</p>
+    <h1>TYPING HERO</h1>
+    <p class="subtitle">Escolha o seu ritmo e digite com precisão</p>
     
-      <div class="song-selector-container">
-        <span class="song-selector-label">Música / Tema:</span>
-        <select id="songSelect" class="song-select"></select>
+    <div class="song-selector-container">
+      <span class="song-selector-label">Música / Tema:</span>
+      <select id="songSelect" class="song-select"></select>
+    </div>
+    
+    <div class="hud">
+      <div class="stat-box">
+        <div class="stat-label">Pontuação</div>
+        <div class="stat-value" id="scoreValue">0</div>
       </div>
+      <div class="stat-box">
+        <div class="stat-label">Hype Rank</div>
+        <div class="stat-value" id="hypeValue">D</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Combo</div>
+        <div class="stat-value" id="comboValue">0x</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">WPM</div>
+        <div class="stat-value" id="wpmValue">0</div>
+      </div>
+    </div>
     
-      <div class="hud">
+    <div class="hype-bar-container">
+      <div class="hype-bar" id="hypeBar"></div>
+    </div>
+    
+    <div id="game"></div>
+    
+    <div class="timer-bar">
+      <div class="timer-fill" id="timerFill"></div>
+    </div>
+    
+    <div id="inputArea">
+      <div class="input-wrapper">
+        <input type="text" id="playerInput" placeholder="Clique em PLAY para começar..." disabled autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text">
+      </div>
+      <button class="btn btn-primary" id="playBtn">PLAY</button>
+    </div>
+    
+    <!-- Game Over Overlay -->
+    <div class="overlay" id="gameOverOverlay">
+      <h2>GAME OVER</h2>
+      <div class="overlay-stats">
         <div class="stat-box">
-          <div class="stat-label">Pontuação</div>
-          <div class="stat-value" id="scoreValue">0</div>
+          <div class="stat-label">Pontuação Final</div>
+          <div class="stat-value" id="finalScore">0</div>
         </div>
         <div class="stat-box">
-          <div class="stat-label">Hype Rank</div>
-          <div class="stat-value" id="hypeValue">D</div>
+          <div class="stat-label">Maior Rank</div>
+          <div class="stat-value" id="finalRank" style="color: #ff0066;">D</div>
         </div>
         <div class="stat-box">
-          <div class="stat-label">Combo</div>
-          <div class="stat-value" id="comboValue">0x</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">WPM</div>
-          <div class="stat-value" id="wpmValue">0</div>
+          <div class="stat-label">Máx WPM</div>
+          <div class="stat-value" id="finalWpm">0</div>
         </div>
       </div>
-    
-      <div class="hype-bar-container">
-        <div class="hype-bar" id="hypeBar"></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="restartBtn">JOGAR NOVAMENTE</button>
+        <button class="btn btn-secondary" id="menuBtn">MENU PRINCIPAL</button>
       </div>
-    
-      <div id="game"></div>
-    
-      <div class="timer-bar">
-        <div class="timer-fill" id="timerFill"></div>
-      </div>
-    
-      <div id="inputArea">
-        <div class="input-wrapper">
-          <input type="text" id="playerInput" placeholder="Clique em PLAY para começar..." disabled autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text">
-        </div>
-        <button class="btn btn-primary" id="playBtn">PLAY</button>
-      </div>
-    
-      <div class="overlay" id="gameOverOverlay">
-        <h2>GAME OVER</h2>
-        <div class="overlay-stats">
-          <div class="stat-box">
-            <div class="stat-label">Pontuação Final</div>
-            <div class="stat-value" id="finalScore">0</div>
+    </div>
+
+    <!-- Botão de Reportar Bug no Canto Inferior Esquerdo -->
+    <button id="bugReportBtn" class="bug-btn">Reportar Bug</button>
+
+    <!-- Modal de Reportar Bug -->
+    <div id="bugReportOverlay" class="bug-modal-overlay">
+      <div class="bug-modal-content">
+        <button id="closeBugModalBtn" class="bug-close-btn">&times;</button>
+        <h2>Reportar um Problema</h2>
+        <p>Encontrou um erro ou falha no jogo? Avise-nos abaixo!</p>
+        
+        <form id="bugReportForm">
+          <div class="form-group">
+            <label for="bugCategory">Categoria:</label>
+            <select id="bugCategory" required>
+              <option value="audio">Áudio / Música</option>
+              <option value="typing">Digitação / Texto</option>
+              <option value="visual">Interface / Visual</option>
+              <option value="other">Outro</option>
+            </select>
           </div>
-          <div class="stat-box">
-            <div class="stat-label">Maior Rank</div>
-            <div class="stat-value" id="finalRank" style="color: #ff0066;">D</div>
+
+          <div class="form-group">
+            <label for="bugDescription">Descrição do Bug:</label>
+            <textarea id="bugDescription" rows="4" placeholder="Descreva o que aconteceu..." required></textarea>
           </div>
-          <div class="stat-box">
-            <div class="stat-label">Máx WPM</div>
-            <div class="stat-value" id="finalWpm">0</div>
+
+          <button type="submit" class="submit-bug-btn">Enviar Relatório</button>
+        </form>
+        
+        <div id="bugFeedbackMsg" class="bug-feedback-msg"></div>
+      </div>
+    </div>
+
+    <!-- MODAL DE SENHA DO CRIADOR (Oculto) -->
+    <div id="passwordOverlay" class="cyber-modal-overlay">
+      <div class="cyber-modal-card secret-card">
+        <div class="cyber-modal-header">
+          <h2>ACESSO RESTRITO</h2>
+          <button id="closePasswordModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div class="cyber-form">
+          <div class="form-group">
+            <label>SENHA DO CRIADOR</label>
+            <input type="password" id="adminPasswordInput" class="cyber-input" placeholder="••••••••" autocomplete="off" />
           </div>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" id="restartBtn">JOGAR NOVAMENTE</button>
-          <button class="btn btn-secondary" id="menuBtn">MENU PRINCIPAL</button>
+          <button id="submitPasswordBtn" class="cyber-btn-primary pink">AUTENTICAR</button>
         </div>
       </div>
-
-<!-- Botão para abrir o Modal de Bugs -->
-<button id="bugReportBtn" class="bug-btn">Reportar Bug</button>
-
-<!-- Modal de Reportar Bug -->
-<div id="bugReportOverlay" class="bug-modal-overlay">
-  <div class="bug-modal-content">
-    <button id="closeBugModalBtn" class="bug-close-btn">&times;</button>
-    <h2>Reportar um Problema</h2>
-    <p>Encontrou um erro ou falha no jogo? Avise-nos abaixo!</p>
-    
-    <form id="bugReportForm">
-      <div class="form-group">
-        <label for="bugCategory">Categoria:</label>
-        <select id="bugCategory" required>
-          <option value="audio">Áudio / Música</option>
-          <option value="typing">Digitação / Texto</option>
-          <option value="visual">Interface / Visual</option>
-          <option value="other">Outro</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="bugDescription">Descrição do Bug:</label>
-        <textarea id="bugDescription" rows="4" placeholder="Descreva o que aconteceu..." required></textarea>
-      </div>
-
-      <button type="submit" class="submit-bug-btn">Enviar Relatório</button>
-    </form>
-    
-    <div id="bugFeedbackMsg" class="bug-feedback-msg"></div>
-  </div>
-</div>
-    <!-- Botão para o Usuário Ver as Novidades -->
-<button id="newsModalBtn" class="cyber-btn">📢 Novidades / Update Logs</button>
-
-<!-- Botão secreto/exclusivo do Criador -->
-<button id="adminBtn" class="cyber-btn admin-only" style="display: none;">⚙️ Criador (Postar Update)</button>
-
-<!-- MODAL DE NOVIDADES (Para os Usuários) -->
-<div id="newsOverlay" class="modal-overlay">
-  <div class="modal-card">
-    <h2>📢 NOVIDADES E CORREÇÕES DE BUGS</h2>
-    <div id="newsList" class="news-list-container">
-      <p class="loading-text">Carregando novidades...</p>
-    </div>
-    <button id="closeNewsModalBtn" class="cyber-btn">FECHAR</button>
-  </div>
-</div>
-
-<!-- BOTÃO DE NOVIDADES (Posicione junto do menu superior ou ao lado do REPORTAR BUG) -->
-<button id="newsModalBtn" class="cyber-btn-outline">
-  <span class="btn-icon">📢</span> PATCH NOTES
-</button>
-
-<!-- MODAL DE NOVIDADES DO USUÁRIO -->
-<div id="newsOverlay" class="cyber-modal-overlay">
-  <div class="cyber-modal-card">
-    <div class="cyber-modal-header">
-      <h2>📢 UPDATE LOGS & CORREÇÕES</h2>
-      <button id="closeNewsModalBtn" class="close-btn">&times;</button>
-    </div>
-    
-    <div id="newsList" class="news-list-container">
-      <div class="news-empty">Nenhuma novidade recente registrada.</div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL DO CRIADOR / ADMIN (Abrir com Shift + A ou botão secreto) -->
-<div id="adminOverlay" class="cyber-modal-overlay">
-  <div class="cyber-modal-card admin-card">
-    <div class="cyber-modal-header">
-      <h2>⚙️ PAINEL DO CRIADOR</h2>
-      <button id="closeAdminModalBtn" class="close-btn">&times;</button>
     </div>
 
-    <form id="adminPostForm" class="cyber-form">
-      <div class="form-group">
-        <label for="postTitle">TÍTULO DA ATUALIZAÇÃO / BUG FIX</label>
-        <input type="text" id="postTitle" class="cyber-input" placeholder="Ex: Bug dos combos resolvido!" required />
+    <!-- MODAL DE UPDATE LOGS / PATCH NOTES DA COMUNIDADE -->
+    <div id="newsOverlay" class="cyber-modal-overlay">
+      <div class="cyber-modal-card">
+        <div class="cyber-modal-header">
+          <h2>📢 UPDATE LOGS & CORREÇÕES</h2>
+          <button id="closeNewsModalBtn" class="close-btn">&times;</button>
+        </div>
+        <div id="newsList" class="news-list-container">
+          <!-- Conteúdo populado dinamicamente via JS -->
+        </div>
       </div>
+    </div>
 
-      <div class="form-group">
-        <label for="postContent">DETALHES DA MENSAGEM</label>
-        <textarea id="postContent" class="cyber-input cyber-textarea" placeholder="Descreva o que foi corrigido ou adicionado no jogo..." required></textarea>
-      </div>
+    <!-- MODAL DO PAINEL DO CRIADOR (Para enviar avisos) -->
+    <div id="adminOverlay" class="cyber-modal-overlay">
+      <div class="cyber-modal-card secret-card">
+        <div class="cyber-modal-header">
+          <h2>⚙️ PAINEL DO CRIADOR</h2>
+          <button id="closeAdminModalBtn" class="close-btn">&times;</button>
+        </div>
 
-      <div class="form-actions">
-        <button type="submit" class="cyber-btn-primary">PUBLICAR UPDATE</button>
+        <form id="adminPostForm" class="cyber-form">
+          <div class="form-group">
+            <label for="postTitle">TÍTULO DA ATUALIZAÇÃO / BUG FIX</label>
+            <input type="text" id="postTitle" class="cyber-input" placeholder="Ex: Bug dos combos resolvido!" required />
+          </div>
+
+          <div class="form-group">
+            <label for="postContent">MENSAGEM PARA OS JOGADORES</label>
+            <textarea id="postContent" class="cyber-input cyber-textarea" placeholder="Descreva o que foi adicionado ou corrigido..." required></textarea>
+          </div>
+
+          <button type="submit" class="cyber-btn-primary pink">PUBLICAR MENSAGEM</button>
+        </form>
       </div>
-    </form>
-  </div>
-</div>
+    </div>
+
     <!-- Vercel Web Analytics -->
     <script>
         window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
     <script defer src="/_vercel/insights/script.js"></script>
-    <!-- SDK do Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Módulos da Aplicação -->
     <script src="JS/supabase.js"></script>
