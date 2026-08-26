@@ -897,16 +897,8 @@ if (bugReportForm) {
 // ==========================================
 // INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
 // ==========================================
-// ==========================================
-// INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
-// ==========================================
 
 // Garante que o código encontre o Supabase mesmo se estiver como _supabase
-const getSupabaseClient = () => {
-  if (typeof supabase !== "undefined") return supabase;
-  if (typeof window._supabase !== "undefined") return window._supabase;
-  return null;
-};
 
 announcements = window.announcements || [];
 
