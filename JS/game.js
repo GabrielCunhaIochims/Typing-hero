@@ -1023,6 +1023,13 @@ if (newsModalBtn) {
 }
 
 // ==========================================
+// ELEMENTOS DO PAINEL ADMIN E ANÚNCIOS
+// ==========================================
+
+const postTitleInput = document.getElementById("postTitle");
+const postContentInput = document.getElementById("postContent");
+
+// ==========================================
 // ATALHO SECRETO E AUTENTICAÇÃO (SHIFT + A)
 // ==========================================
 
@@ -1072,21 +1079,30 @@ if (adminPasswordInput) {
   });
 }
 
+// CORREÇÃO: Captura direta das entradas e validação no submit
 if (adminPostForm) {
   adminPostForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const titleEl = document.getElementById("postTitle");
-    const contentEl = document.getElementById("postContent");
+
+    const titleEl = document.getElementById("postTitle") || postTitleInput;
+    const contentEl = document.getElementById("postContent") || postContentInput;
 
     const title = titleEl ? titleEl.value.trim() : "";
     const content = contentEl ? contentEl.value.trim() : "";
 
-    if (!title || !content) return;
+    if (!title || !content) {
+      if (typeof showNotification === "function") {
+        showNotification("Preencha o título e o conteúdo!", true);
+      } else {
+        alert("Preencha o título e o conteúdo!");
+      }
+      return;
+    }
 
     const newPost = {
       id: Date.now(),
-      title,
-      content,
+      title: title,
+      content: content,
       date: new Date().toLocaleDateString("pt-BR") + " às " + new Date().toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -1095,6 +1111,8 @@ if (adminPostForm) {
 
     adminPostForm.reset();
     if (adminOverlay) adminOverlay.classList.remove("active");
+    
+    renderAnnouncements();
     checkUnreadNews();
 
     if (typeof showNotification === "function") {
@@ -1102,7 +1120,6 @@ if (adminPostForm) {
     }
   });
 }
-
 // ==========================================
 // FECHAMENTO GERAL DE MODAIS
 // ==========================================
