@@ -1,3 +1,7 @@
+// ==========================================
+// CONFIGURAÇÕES, SEGURANÇA E BIBLIOTECA
+// ==========================================
+
 const MUSIC_LIBRARY = {
   "9_circles_of_hell": {
     sectionName: "Infernal Descent",
@@ -80,10 +84,24 @@ const MUSIC_LIBRARY = {
   }
 };
 
-// Elementos do DOM do Jogo
+const ADMIN_PASSWORD_HASH = "0fc38699678759bfc9d851f132fca6824f6eb0c98f6122acdfaa83c9df3a44fc";
+const RANKS = [
+  { name: "D", min: 0, color: "#888888" },
+  { name: "C", min: 10, color: "#00ccff" },
+  { name: "B", min: 25, color: "#00ff88" },
+  { name: "A", min: 45, color: "#ffcc00" },
+  { name: "S", min: 70, color: "#ff9900" },
+  { name: "SS", min: 100, color: "#ff0066" },
+  { name: "SSS", min: 135, color: "#ff00cc" },
+  { name: "HERO", min: 180, color: "#ffffff" }
+];
+
+// ==========================================
+// ELEMENTOS DO DOM & ESTADO GLOBAL
+// ==========================================
+
 const songSelect = document.getElementById("songSelect");
 const screenFlash = document.getElementById("screenFlash");
-
 const game = document.getElementById("game");
 const scoreValue = document.getElementById("scoreValue");
 const hypeValue = document.getElementById("hypeValue");
@@ -103,28 +121,145 @@ const rankUpBadge = document.getElementById("rankUpBadge");
 const rankBadgeContainer = document.getElementById("rankBadgeContainer");
 const rankUpShockwave = document.getElementById("rankUpShockwave");
 
-// Elementos DOM do Modal de Bugs
 const bugReportBtn = document.getElementById("bugReportBtn");
 const bugReportOverlay = document.getElementById("bugReportOverlay");
 const closeBugModalBtn = document.getElementById("closeBugModalBtn");
 const bugReportForm = document.getElementById("bugReportForm");
 const bugFeedbackMsg = document.getElementById("bugFeedbackMsg");
 
-// Cache de elementos dinâmicos para otimização de performance
-let cachedCharSpans = [];
+const newsOverlay = document.getElementById("newsOverlay");
+const newsList = document.getElementById("newsList");
+const newsModalBtn = document.getElementById("newsModalBtn");
+const closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
 
-// Recupera dados da música navegando pelas seções
+const passwordOverlay = document.getElementById("passwordOverlay");
+const adminPasswordInput = document.getElementById("adminPasswordInput");
+const submitPasswordBtn = document.getElementById("submitPasswordBtn");
+const closePasswordModalBtn = document.getElementById("closePasswordModalBtn");
+
+const adminOverlay = document.getElementById("adminOverlay");
+const adminPostForm = document.getElementById("adminPostForm");
+const postTitleInput = document.getElementById("postTitle");
+const postContentInput = document.getElementById("postContent");
+const closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
+
+// Variáveis do Estado do Jogo
+let cachedCharSpans = [];
+let currentSongKey = songSelect ? songSelect.value : "";
+let score = 0;
+let hypePoints = 0;
+let combo = 0;
+const MAX_COMBO = 8;
+let text = "";
+let gameActive = false;
+let startTime = null;
+let charCount = 0;
+let maxWpm = 0;
+let timerInterval = null;
+let timeLeft = 60;
+let maxTime = 60;
+let correctCharsCount = 0;
+let isSRankActive = false;
+let highestRankIndex = 0;
+let currentRankIndex = 0;
+let previousRankIndex = 0;
+let announcements = [];
+
+// ==========================================
+// SISTEMA DE NOTIFICAÇÃO (TOAST CYBERPUNK)
+// ==========================================
+
+function showNotification(message, isError = true) {
+  let toast = document.getElementById("cyberToast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "cyberToast";
+    toast.style.position = "fixed";
+    toast.style.bottom = "30px";
+    toast.style.left = "50%";
+    toast.style.transform = "translateX(-50%) translateY(100px)";
+    toast.style.backgroundColor = "rgba(10, 10, 18, 0.95)";
+    toast.style.border = "1px solid #ff0066";
+    toast.style.boxShadow = "0 0 15px rgba(255, 0, 102, 0.4)";
+    toast.style.color = "#ffffff";
+    toast.style.padding = "12px 24px";
+    toast.style.borderRadius = "8px";
+    toast.style.fontFamily = "monospace, sans-serif";
+    toast.style.fontSize = "0.95rem";
+    toast.style.fontWeight = "bold";
+    toast.style.zIndex = "99999";
+    toast.style.transition = "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+    toast.style.display = "flex";
+    toast.style.alignItems = "center";
+    toast.style.gap = "10px";
+    toast.style.pointerEvents = "none";
+    document.body.appendChild(toast);
+  }
+
+  toast.style.borderColor = isError ? "#ff0066" : "#00ffcc";
+  toast.style.boxShadow = isError ? "0 0 15px rgba(255, 0, 102, 0.4)" : "0 0 15px rgba(0, 255, 204, 0.4)";
+  toast.innerHTML = `<span style="font-size: 1.2rem;">${isError ? '⚠️' : '✓'}</span> ${message}`;
+
+  setTimeout(() => { toast.style.transform = "translateX(-50%) translateY(0)"; }, 10);
+  setTimeout(() => { toast.style.transform = "translateX(-50%) translateY(100px)"; }, 3500);
+}
+
+// ==========================================
+// FUNÇÕES UTILITÁRIAS & AUTENTICAÇÃO USUÁRIO
+// ==========================================
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function escapeHtml(text) {
+  if (!text) return "";
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function getLoggedUser() {
+  const storedUser = localStorage.getItem("currentUser") || 
+                     localStorage.getItem("user") || 
+                     localStorage.getItem("usuario") ||
+                     localStorage.getItem("logged_in_user");
+                     
+  if (storedUser) {
+    try {
+      const parsed = JSON.parse(storedUser);
+      if (typeof parsed === "object" && parsed !== null) return parsed;
+      return { username: String(parsed) };
+    } catch (e) {
+      return { username: storedUser };
+    }
+  }
+
+  const navUserEl = document.querySelector(".user-name, #userName, .profile-name, .user-info, header span");
+  if (navUserEl && navUserEl.textContent.trim() !== "") {
+    return { username: navUserEl.textContent.trim() };
+  }
+
+  const hasLogoutBtn = Array.from(document.querySelectorAll("button, a")).some(el => {
+    const txt = el.textContent.trim().toUpperCase();
+    return txt === "SAIR" || txt === "LOGOUT";
+  });
+
+  if (hasLogoutBtn) return { username: "INFAMOS" };
+  return null;
+}
+
+// ==========================================
+// LÓGICA CORE DO JOGO DE DIGITAÇÃO
+// ==========================================
+
 function getSongData(songKey) {
   for (const sectionKey in MUSIC_LIBRARY) {
     const section = MUSIC_LIBRARY[sectionKey];
-    if (section.tracks[songKey]) {
-      return section.tracks[songKey];
-    }
+    if (section.tracks[songKey]) return section.tracks[songKey];
   }
   return null;
 }
 
-// Preenche o elemento <select>
 if (songSelect) {
   songSelect.innerHTML = "";
   Object.keys(MUSIC_LIBRARY).forEach(sectionKey => {
@@ -144,8 +279,6 @@ if (songSelect) {
   });
 }
 
-let currentSongKey = songSelect ? songSelect.value : "";
-
 function applySelectedSong(key) {
   currentSongKey = key;
   const songData = getSongData(key);
@@ -156,48 +289,14 @@ function applySelectedSong(key) {
   if (typeof renderLeaderboard === "function") renderLeaderboard(key);
 }
 
-if (currentSongKey) {
-  applySelectedSong(currentSongKey);
-}
+if (currentSongKey) applySelectedSong(currentSongKey);
 
 if (songSelect) {
   songSelect.addEventListener("change", (e) => {
     applySelectedSong(e.target.value);
-    if (!gameActive && typeof playMenuMusic === "function") {
-      playMenuMusic();
-    }
+    if (!gameActive && typeof playMenuMusic === "function") playMenuMusic();
   });
 }
-
-let score = 0;
-let hypePoints = 0;
-let combo = 0;
-const MAX_COMBO = 8;
-let text = "";
-let gameActive = false;
-let startTime = null;
-let charCount = 0;
-let maxWpm = 0;
-let timerInterval = null;
-let timeLeft = 60;
-let maxTime = 60;
-let correctCharsCount = 0;
-let isSRankActive = false;
-
-const RANKS = [
-  { name: "D", min: 0, color: "#888888" },
-  { name: "C", min: 10, color: "#00ccff" },
-  { name: "B", min: 25, color: "#00ff88" },
-  { name: "A", min: 45, color: "#ffcc00" },
-  { name: "S", min: 70, color: "#ff9900" },
-  { name: "SS", min: 100, color: "#ff0066" },
-  { name: "SSS", min: 135, color: "#ff00cc" },
-  { name: "HERO", min: 180, color: "#ffffff" }
-];
-
-let highestRankIndex = 0;
-let currentRankIndex = 0;
-let previousRankIndex = 0;
 
 function getCurrentRank() {
   for (let i = RANKS.length - 1; i >= 0; i--) {
@@ -220,14 +319,10 @@ function triggerRankUpAnimation(rank) {
 
   if (rank.index >= 4) {
     rankBadgeContainer.classList.add('is-rank-s');
-  } else {
-    rankBadgeContainer.classList.remove('is-rank-s');
-  }
-
-  if (rank.index >= 4) {
     document.body.classList.add('mega-shake');
     setTimeout(() => document.body.classList.remove('mega-shake'), 600);
   } else {
+    rankBadgeContainer.classList.remove('is-rank-s');
     document.body.classList.add('screen-shake');
     setTimeout(() => document.body.classList.remove('screen-shake'), 400);
   }
@@ -255,10 +350,7 @@ function triggerRankUpAnimation(rank) {
   rankUpOverlay.classList.add('active');
 
   if (typeof playRankUpSound === "function") playRankUpSound(rank.index);
-
-  setTimeout(() => {
-    rankUpOverlay.classList.remove('active');
-  }, 1500);
+  setTimeout(() => rankUpOverlay.classList.remove('active'), 1500);
 }
 
 function renderText() {
@@ -281,14 +373,11 @@ function triggerSRankEffects(isActivating) {
   if (isActivating && !isSRankActive) {
     isSRankActive = true;
     if (typeof fadeAudioVolume === "function") fadeAudioVolume(gameMusic, MAX_VOLUME, 500);
-
     if (game) game.classList.add('s-rank-active');
     if (input) input.classList.add('s-rank-active');
-
   } else if (!isActivating && isSRankActive) {
     isSRankActive = false;
     if (typeof fadeAudioVolume === "function") fadeAudioVolume(gameMusic, BASE_VOLUME, 500);
-
     if (game) game.classList.remove('s-rank-active');
     if (input) input.classList.remove('s-rank-active');
   }
@@ -305,11 +394,7 @@ function updateStats() {
   }
   previousRankIndex = currentRank.index;
 
-  if (currentRank.index >= 4) {
-    triggerSRankEffects(true);
-  } else {
-    triggerSRankEffects(false);
-  }
+  triggerSRankEffects(currentRank.index >= 4);
 
   if (hypeValue) {
     if (hypeValue.textContent !== currentRank.name) {
@@ -405,7 +490,6 @@ function nextText() {
 
   const currentPhrases = songData.phrases;
   text = currentPhrases[Math.floor(Math.random() * currentPhrases.length)];
-
   correctCharsCount = 0;
 
   if (input) {
@@ -415,19 +499,13 @@ function nextText() {
   }
 
   renderText();
-
-  if (input) {
-    setTimeout(() => input.focus(), 50);
-  }
-
+  if (input) setTimeout(() => input.focus(), 50);
   timeLeft = Math.min(maxTime, timeLeft + 4);
 }
 
 if (game) {
   game.addEventListener("click", () => {
-    if (gameActive && input && !input.disabled) {
-      input.focus();
-    }
+    if (gameActive && input && !input.disabled) input.focus();
   });
 }
 
@@ -480,9 +558,7 @@ function startGame() {
       updateStats();
     }
 
-    if (timeLeft <= 0) {
-      endGame();
-    }
+    if (timeLeft <= 0) endGame();
   }, 100);
 }
 
@@ -524,8 +600,8 @@ function endGame() {
   if (typeof playMenuMusic === "function") playMenuMusic();
 
   const finalRankName = RANKS[highestRankIndex].name;
-
   animateFinalScore(score);
+
   const finalRankEl = document.getElementById("finalRank");
   if (finalRankEl) {
     finalRankEl.textContent = finalRankName;
@@ -604,7 +680,6 @@ if (input) {
     if (!gameActive) return;
 
     const typed = input.value;
-
     if (typed.length < correctCharsCount) {
       input.value = text.substring(0, correctCharsCount);
       return;
@@ -631,7 +706,6 @@ if (input) {
         
         const pointsGained = Math.round(basePoints * comboMult * rankMult * songMultiplier);
         score += pointsGained;
-
         timeLeft = Math.min(maxTime, timeLeft + 0.3);
 
         if (typeof playSuccessSound === "function") playSuccessSound(combo);
@@ -649,7 +723,6 @@ if (input) {
 
       } else {
         combo = 0; 
-        
         const currentRank = getCurrentRank();
         if (currentRank.index > 0) {
           const previousRank = RANKS[currentRank.index - 1];
@@ -659,7 +732,6 @@ if (input) {
         }
 
         timeLeft = Math.max(0, timeLeft - 2.0);
-
         if (typeof playErrorSound === "function") playErrorSound();
 
         if (charSpan) {
@@ -678,10 +750,8 @@ if (input) {
         }
 
         input.value = text.substring(0, correctCharsCount);
-
         input.classList.add("error");
         setTimeout(() => input.classList.remove("error"), 250);
-
         break;
       }
     }
@@ -698,9 +768,7 @@ if (input) {
       charSpan.classList.remove("pending", "correct", "current");
 
       if (i < input.value.length) {
-        if (actual === expected) {
-          charSpan.classList.add("correct");
-        }
+        if (actual === expected) charSpan.classList.add("correct");
       } else if (i === input.value.length) {
         charSpan.classList.add("current");
       } else {
@@ -708,184 +776,63 @@ if (input) {
       }
     }
 
-    if (input.value === text) {
-      nextText();
-    }
-
+    if (input.value === text) nextText();
     updateStats();
   });
 
   input.addEventListener("paste", (e) => e.preventDefault());
 }
 
-// --- NOVO SISTEMA DE NOTIFICAÇÃO ESTILIZADO (TOAST CYBERPUNK) ---
-function showNotification(message, isError = true) {
-  let toast = document.getElementById("cyberToast");
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "cyberToast";
-    toast.style.position = "fixed";
-    toast.style.bottom = "30px";
-    toast.style.left = "50%";
-    toast.style.transform = "translateX(-50%) translateY(100px)";
-    toast.style.backgroundColor = "rgba(10, 10, 18, 0.95)";
-    toast.style.border = "1px solid #ff0066";
-    toast.style.boxShadow = "0 0 15px rgba(255, 0, 102, 0.4)";
-    toast.style.color = "#ffffff";
-    toast.style.padding = "12px 24px";
-    toast.style.borderRadius = "8px";
-    toast.style.fontFamily = "monospace, sans-serif";
-    toast.style.fontSize = "0.95rem";
-    toast.style.fontWeight = "bold";
-    toast.style.zIndex = "99999";
-    toast.style.transition = "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-    toast.style.display = "flex";
-    toast.style.alignItems = "center";
-    toast.style.gap = "10px";
-    toast.style.pointerEvents = "none";
-    document.body.appendChild(toast);
-  }
-
-  toast.style.borderColor = isError ? "#ff0066" : "#00ffcc";
-  toast.style.boxShadow = isError ? "0 0 15px rgba(255, 0, 102, 0.4)" : "0 0 15px rgba(0, 255, 204, 0.4)";
-  toast.innerHTML = `<span style="font-size: 1.2rem;">${isError ? '⚠️' : '✓'}</span> ${message}`;
-
-  // Animação de entrada
-  setTimeout(() => {
-    toast.style.transform = "translateX(-50%) translateY(0)";
-  }, 10);
-
-  // Esconde após 3.5 segundos
-  setTimeout(() => {
-    toast.style.transform = "translateX(-50%) translateY(100px)";
-  }, 3500);
-}
 // ==========================================
-// DECLARAÇÃO DE ELEMENTOS DO DOM E ESTADO
+// REPORT DE BUGS & DISCORD WEBHOOK
 // ==========================================
 
-const newsOverlay = document.getElementById("newsOverlay");
-const newsList = document.getElementById("newsList");
-const newsModalBtn = document.getElementById("newsModalBtn");
-const closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
-
-const passwordOverlay = document.getElementById("passwordOverlay");
-const adminPasswordInput = document.getElementById("adminPasswordInput");
-const submitPasswordBtn = document.getElementById("submitPasswordBtn");
-const closePasswordModalBtn = document.getElementById("closePasswordModalBtn");
-
-const adminOverlay = document.getElementById("adminOverlay");
-const adminPostForm = document.getElementById("adminPostForm");
-const closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
-
-let announcements = [];
-try {
-  announcements = JSON.parse(localStorage.getItem("typing_hero_announcements")) || [];
-} catch (e) {
-  announcements = [];
-}
-
-// ==========================================
-// CHECAGEM DE USUÁRIO LOGADO
-// ==========================================
-
-function getLoggedUser() {
-  const storedUser = localStorage.getItem("currentUser") || 
-                     localStorage.getItem("user") || 
-                     localStorage.getItem("usuario") ||
-                     localStorage.getItem("logged_in_user");
-                     
-  if (storedUser) {
-    try {
-      const parsed = JSON.parse(storedUser);
-      if (typeof parsed === "object" && parsed !== null) {
-        return parsed;
-      }
-      return { username: String(parsed) };
-    } catch (e) {
-      return { username: storedUser };
-    }
-  }
-
-  const navUserEl = document.querySelector(".user-name, #userName, .profile-name, .user-info, header span");
-  if (navUserEl && navUserEl.textContent.trim() !== "") {
-    return { username: navUserEl.textContent.trim() };
-  }
-
-  const hasLogoutBtn = Array.from(document.querySelectorAll("button, a")).some(el => {
-    const txt = el.textContent.trim().toUpperCase();
-    return txt === "SAIR" || txt === "LOGOUT";
-  });
-
-  if (hasLogoutBtn) {
-    return { username: "INFAMOS" };
-  }
-
-  return null;
-}
-
-// ==========================================
-// CONTROLE DO MODAL DE BUGS & DISCORD WEBHOOK
-// ==========================================
-
-if (typeof bugReportBtn !== "undefined" && bugReportBtn && typeof bugReportOverlay !== "undefined" && bugReportOverlay) {
+if (bugReportBtn && bugReportOverlay) {
   bugReportBtn.addEventListener("click", () => {
     const user = getLoggedUser();
-
     if (!user) {
-      if (typeof showNotification === "function") {
-        showNotification("ACESSO NEGADO: Você precisa estar logado para reportar um bug!", true);
-      } else {
-        alert("ACESSO NEGADO: Você precisa estar logado para reportar um bug!");
-      }
+      showNotification("ACESSO NEGADO: Você precisa estar logado para reportar um bug!", true);
       return;
     }
-
     bugReportOverlay.classList.add("active");
-    if (typeof input !== "undefined" && input) input.blur();
+    if (input) input.blur();
   });
 }
 
 function closeBugModal() {
-  if (typeof bugReportOverlay !== "undefined" && bugReportOverlay) {
+  if (bugReportOverlay) {
     bugReportOverlay.classList.remove("active");
-    if (typeof bugReportForm !== "undefined" && bugReportForm) bugReportForm.reset();
-    if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
+    if (bugReportForm) bugReportForm.reset();
+    if (bugFeedbackMsg) {
       bugFeedbackMsg.textContent = "";
       bugFeedbackMsg.className = "bug-feedback-msg";
     }
   }
 }
 
-if (typeof closeBugModalBtn !== "undefined" && closeBugModalBtn) {
-  closeBugModalBtn.addEventListener("click", closeBugModal);
-}
+if (closeBugModalBtn) closeBugModalBtn.addEventListener("click", closeBugModal);
 
-if (typeof bugReportForm !== "undefined" && bugReportForm) {
+if (bugReportForm) {
   bugReportForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const user = getLoggedUser();
-
     if (!user) {
-      if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
+      if (bugFeedbackMsg) {
         bugFeedbackMsg.textContent = "Sessão expirada. Faça login para reportar.";
         bugFeedbackMsg.style.color = "#ff0066";
       }
-      if (typeof showNotification === "function") {
-        showNotification("Sessão expirada. Faça login novamente.", true);
-      }
+      showNotification("Sessão expirada. Faça login novamente.", true);
       return;
     }
 
     const categoryEl = document.getElementById("bugCategory");
     const descriptionEl = document.getElementById("bugDescription");
-
     const category = categoryEl ? categoryEl.value : "Geral";
     const description = descriptionEl ? descriptionEl.value : "";
 
     if (!description.trim()) {
-      if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
+      if (bugFeedbackMsg) {
         bugFeedbackMsg.textContent = "Por favor, descreva o problema.";
         bugFeedbackMsg.style.color = "#ff0066";
       }
@@ -894,7 +841,7 @@ if (typeof bugReportForm !== "undefined" && bugReportForm) {
 
     const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1541949547255955476/Tgvh7uqpFbS1CrBLKhQaEunXUb5SBdKtsSLScu3N2JlpkiWHiJT_XJBxpfKMe2BbRA98";
 
-    if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
+    if (bugFeedbackMsg) {
       bugFeedbackMsg.textContent = "Enviando relatório...";
       bugFeedbackMsg.style.color = "#00ffcc";
     }
@@ -910,29 +857,12 @@ if (typeof bugReportForm !== "undefined" && bugReportForm) {
         title: "Novo Bug Reportado!",
         color: 16711782,
         fields: [
-          {
-            name: "Enviado por",
-            value: `${username} (ID: ${userId})`,
-            inline: false
-          },
-          {
-            name: "Música Selecionada",
-            value: currentSong,
-            inline: true
-          },
-          {
-            name: "Categoria",
-            value: category,
-            inline: true
-          },
-          {
-            name: "Descrição / Relato",
-            value: description
-          }
+          { name: "Enviado por", value: `${username} (ID: ${userId})`, inline: false },
+          { name: "Música Selecionada", value: currentSong, inline: true },
+          { name: "Categoria", value: category, inline: true },
+          { name: "Descrição / Relato", value: description }
         ],
-        footer: {
-          text: "Sistema de Report de Bugs • Typing Hero"
-        },
+        footer: { text: "Sistema de Report de Bugs • Typing Hero" },
         timestamp: new Date().toISOString()
       }]
     };
@@ -940,29 +870,23 @@ if (typeof bugReportForm !== "undefined" && bugReportForm) {
     try {
       const response = await fetch(DISCORD_WEBHOOK_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
       if (response.ok) {
-        if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
+        if (bugFeedbackMsg) {
           bugFeedbackMsg.textContent = "✓ Relatório enviado ao Discord com sucesso!";
           bugFeedbackMsg.className = "bug-feedback-msg success";
         }
-
         bugReportForm.reset();
-
-        setTimeout(() => {
-          closeBugModal();
-        }, 1500);
+        setTimeout(closeBugModal, 1500);
       } else {
         throw new Error("Erro na resposta do Webhook");
       }
     } catch (error) {
       console.error("Erro ao enviar o bug:", error);
-      if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
+      if (bugFeedbackMsg) {
         bugFeedbackMsg.textContent = "Erro ao enviar o relato. Tente novamente.";
         bugFeedbackMsg.style.color = "#ff0066";
       }
@@ -971,65 +895,9 @@ if (typeof bugReportForm !== "undefined" && bugReportForm) {
 }
 
 // ==========================================
-// CONFIGURAÇÕES, SEGURANÇA E UTILITÁRIOS
+// INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
 // ==========================================
 
-const ADMIN_PASSWORD_HASH = "0fc38699678759bfc9d851f132fca6824f6eb0c98f6122acdfaa83c9df3a44fc";
-
-async function sha256(str) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-function escapeHtml(text) {
-  if (!text) return "";
-  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-// ==========================================
-// SELEÇÃO COMPLETA DOS ELEMENTOS DO DOM
-// ==========================================
-
-const newsModalBtn = document.getElementById("newsModalBtn");
-const newsOverlay = document.getElementById("newsOverlay");
-const closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
-
-const passwordOverlay = document.getElementById("passwordOverlay");
-const adminPasswordInput = document.getElementById("adminPasswordInput");
-const submitPasswordBtn = document.getElementById("submitPasswordBtn");
-const closePasswordModalBtn = document.getElementById("closePasswordModalBtn");
-
-const adminOverlay = document.getElementById("adminOverlay");
-const adminPostForm = document.getElementById("adminPostForm");
-const postTitleInput = document.getElementById("postTitle");
-const postContentInput = document.getElementById("postContent");
-const closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
-
-let announcements = [];
-
-// ==========================================
-// INTEGRAÇÃO DE ANÚNCIOS / PATCH NOTES (SUPABASE)
-// ==========================================
-
-// Reutiliza ou declara as variáveis para evitar "already been declared"
-var newsModalBtn = document.getElementById("newsModalBtn");
-var newsOverlay = document.getElementById("newsOverlay");
-var closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
-
-var passwordOverlay = document.getElementById("passwordOverlay");
-var adminPasswordInput = document.getElementById("adminPasswordInput");
-var submitPasswordBtn = document.getElementById("submitPasswordBtn");
-var closePasswordModalBtn = document.getElementById("closePasswordModalBtn");
-
-var adminOverlay = document.getElementById("adminOverlay");
-var adminPostForm = document.getElementById("adminPostForm");
-var postTitleInput = document.getElementById("postTitle");
-var postContentInput = document.getElementById("postContent");
-var closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
-
-let announcements = [];
-
-// Busca os anúncios salvos no banco
 async function fetchAnnouncements() {
   try {
     const { data, error } = await supabase
@@ -1038,7 +906,6 @@ async function fetchAnnouncements() {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-
     announcements = data || [];
     renderAnnouncements();
     checkUnreadNews();
@@ -1047,9 +914,7 @@ async function fetchAnnouncements() {
   }
 }
 
-// Renderiza os anúncios na interface
 function renderAnnouncements() {
-  const newsList = document.getElementById("newsList");
   if (!newsList) return;
 
   if (announcements.length === 0) {
@@ -1057,7 +922,7 @@ function renderAnnouncements() {
     return;
   }
 
-  const user = typeof getLoggedUser === "function" ? getLoggedUser() : null;
+  const user = getLoggedUser();
   const isUserAdmin = user && (user.username === "INFAMOS" || user.name === "INFAMOS");
 
   newsList.innerHTML = announcements.map(post => {
@@ -1076,15 +941,14 @@ function renderAnnouncements() {
             ✕
           </button>
         ` : ''}
-        <h4>${typeof escapeHtml === "function" ? escapeHtml(post.title) : post.title}</h4>
-        <p>${typeof escapeHtml === "function" ? escapeHtml(post.content) : post.content}</p>
+        <h4>${escapeHtml(post.title)}</h4>
+        <p>${escapeHtml(post.content)}</p>
         <span class="news-date" style="display: block; margin-top: 8px; font-size: 0.75rem; color: #aaa;">📅 ${formattedDate}</span>
       </div>
     `;
   }).join("");
 }
 
-// Exclui um anúncio do Supabase
 async function deleteAnnouncement(id) {
   if (!confirm("Tem certeza que deseja excluir esta mensagem do banco de dados?")) return;
 
@@ -1095,11 +959,7 @@ async function deleteAnnouncement(id) {
       .eq("id", id);
 
     if (error) throw error;
-
-    if (typeof showNotification === "function") {
-      showNotification("Mensagem removida com sucesso!", false);
-    }
-
+    showNotification("Mensagem removida com sucesso!", false);
     fetchAnnouncements();
   } catch (err) {
     console.error("Erro ao deletar anúncio:", err.message);
@@ -1107,18 +967,15 @@ async function deleteAnnouncement(id) {
   }
 }
 
-// Controle de notícias não lidas
 function checkUnreadNews() {
   const lastRead = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
-  
   if (announcements.length > lastRead && newsModalBtn) {
     newsModalBtn.classList.add("has-unread-news");
-  } else if (newsModalBtn && announcements.length <= lastRead) {
+  } else if (newsModalBtn) {
     newsModalBtn.classList.remove("has-unread-news");
   }
 }
 
-// Evento ao abrir o modal de notícias
 if (newsModalBtn) {
   newsModalBtn.addEventListener("click", () => {
     if (newsOverlay) newsOverlay.classList.add("active");
@@ -1128,7 +985,6 @@ if (newsModalBtn) {
   });
 }
 
-// Envio do formulário do painel admin enviado ao Supabase
 if (adminPostForm) {
   adminPostForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1137,11 +993,7 @@ if (adminPostForm) {
     const content = postContentInput ? postContentInput.value.trim() : "";
 
     if (!title || !content) {
-      if (typeof showNotification === "function") {
-        showNotification("Preencha o título e o conteúdo!", true);
-      } else {
-        alert("Preencha o título e o conteúdo!");
-      }
+      showNotification("Preencha o título e o conteúdo!", true);
       return;
     }
 
@@ -1154,11 +1006,7 @@ if (adminPostForm) {
 
       adminPostForm.reset();
       if (adminOverlay) adminOverlay.classList.remove("active");
-
-      if (typeof showNotification === "function") {
-        showNotification("Atualização publicada com sucesso!", false);
-      }
-
+      showNotification("Atualização publicada com sucesso!", false);
       fetchAnnouncements();
     } catch (err) {
       console.error("Erro ao inserir anúncio:", err.message);
@@ -1168,7 +1016,7 @@ if (adminPostForm) {
 }
 
 // ==========================================
-// ATALHO SECRETO E AUTENTICAÇÃO (SHIFT + A)
+// PAINEL ADMIN (SHIFT + A) E EVENTOS DE MODAL
 // ==========================================
 
 window.addEventListener("keydown", (e) => {
@@ -1195,23 +1043,13 @@ window.addEventListener("keydown", (e) => {
 async function verifyPassword() {
   if (!adminPasswordInput) return;
   const typedPassword = adminPasswordInput.value;
-  
-  if (typeof sha256 !== "function" || typeof ADMIN_PASSWORD_HASH === "undefined") {
-    console.error("Função sha256 ou variável ADMIN_PASSWORD_HASH não definida.");
-    return;
-  }
-
   const hash = await sha256(typedPassword);
 
   if (hash === ADMIN_PASSWORD_HASH) {
     if (passwordOverlay) passwordOverlay.classList.remove("active");
     if (adminOverlay) adminOverlay.classList.add("active");
   } else {
-    if (typeof showNotification === "function") {
-      showNotification("Senha incorreta!", true);
-    } else {
-      alert("Senha incorreta!");
-    }
+    showNotification("Senha incorreta!", true);
     adminPasswordInput.value = "";
   }
 }
@@ -1223,10 +1061,6 @@ if (adminPasswordInput) {
   });
 }
 
-// ==========================================
-// FECHAMENTO GERAL DE MODAIS
-// ==========================================
-
 if (closeNewsModalBtn) closeNewsModalBtn.addEventListener("click", () => newsOverlay && newsOverlay.classList.remove("active"));
 if (closePasswordModalBtn) closePasswordModalBtn.addEventListener("click", () => passwordOverlay && passwordOverlay.classList.remove("active"));
 if (closeAdminModalBtn) closeAdminModalBtn.addEventListener("click", () => adminOverlay && adminOverlay.classList.remove("active"));
@@ -1235,10 +1069,8 @@ window.addEventListener("click", (e) => {
   if (newsOverlay && e.target === newsOverlay) newsOverlay.classList.remove("active");
   if (passwordOverlay && e.target === passwordOverlay) passwordOverlay.classList.remove("active");
   if (adminOverlay && e.target === adminOverlay) adminOverlay.classList.remove("active");
-  if (typeof bugReportOverlay !== "undefined" && bugReportOverlay && e.target === bugReportOverlay && typeof closeBugModal === "function") {
-    closeBugModal();
-  }
+  if (bugReportOverlay && e.target === bugReportOverlay) closeBugModal();
 });
 
-// Inicialização
+// Inicializa a chamada dos anúncios no Supabase
 fetchAnnouncements();
