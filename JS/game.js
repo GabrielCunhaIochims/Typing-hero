@@ -110,6 +110,9 @@ const closeBugModalBtn = document.getElementById("closeBugModalBtn");
 const bugReportForm = document.getElementById("bugReportForm");
 const bugFeedbackMsg = document.getElementById("bugFeedbackMsg");
 
+// Cache de elementos dinâmicos para otimização de performance
+let cachedCharSpans = [];
+
 // Recupera dados da música navegando pelas seções
 function getSongData(songKey) {
   for (const sectionKey in MUSIC_LIBRARY) {
@@ -261,11 +264,14 @@ function triggerRankUpAnimation(rank) {
 function renderText() {
   if (!game) return;
   game.innerHTML = "";
+  cachedCharSpans = [];
+
   for (let i = 0; i < text.length; i++) {
     const span = document.createElement("span");
     span.className = "char pending";
     span.textContent = text[i] === " " ? "\u00A0" : text[i];
     game.appendChild(span);
+    cachedCharSpans.push(span);
   }
 }
 
@@ -400,12 +406,17 @@ function nextText() {
   const currentPhrases = songData.phrases;
   text = currentPhrases[Math.floor(Math.random() * currentPhrases.length)];
 
-  renderText();
+  correctCharsCount = 0;
+
   if (input) {
     input.value = "";
-    correctCharsCount = 0;
     input.disabled = false;
     input.classList.remove("error");
+  }
+
+  renderText();
+
+  if (input) {
     setTimeout(() => input.focus(), 50);
   }
 
@@ -424,6 +435,11 @@ function startGame() {
   if (typeof initAudio === "function") initAudio();
   if (typeof playGameMusic === "function") playGameMusic();
 
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
   score = 0;
   hypePoints = 0;
   combo = 0;
@@ -437,16 +453,21 @@ function startGame() {
   gameActive = true;
   isSRankActive = false;
   startTime = Date.now();
-  if (overlay) overlay.classList.remove("active");
 
+  if (overlay) overlay.classList.remove("active");
   if (songSelect) songSelect.disabled = true;
   if (quitBtn) quitBtn.style.display = "block";
-  nextText();
   if (playBtn) playBtn.style.display = "none";
+  
   triggerSRankEffects(false);
+  nextText();
 
-  if (timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(() => {
+    if (!gameActive) {
+      clearInterval(timerInterval);
+      return;
+    }
+
     timeLeft -= 0.1;
     const pct = Math.max(0, (timeLeft / maxTime) * 100);
     if (timerFill) {
@@ -486,7 +507,11 @@ function animateFinalScore(targetScore) {
 
 function endGame() {
   gameActive = false;
-  clearInterval(timerInterval);
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
   if (input) {
     input.disabled = true;
     input.blur();
@@ -520,17 +545,22 @@ function endGame() {
 
 function returnToMenu() {
   gameActive = false;
-  clearInterval(timerInterval);
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
 
   if (overlay) overlay.classList.remove("active");
   if (playBtn) playBtn.style.display = "inline-block";
   if (quitBtn) quitBtn.style.display = "none";
+
   if (input) {
     input.disabled = true;
     input.blur();
     input.value = "";
     input.placeholder = "Clique em PLAY para começar...";
   }
+
   if (game) game.innerHTML = "";
   if (songSelect) songSelect.disabled = false;
 
@@ -540,6 +570,8 @@ function returnToMenu() {
   previousRankIndex = 0;
   currentRankIndex = 0;
   charCount = 0;
+  cachedCharSpans = [];
+
   if (wpmValue) wpmValue.textContent = "0";
   if (timerFill) timerFill.style.width = "100%";
 
@@ -572,7 +604,6 @@ if (input) {
     if (!gameActive) return;
 
     const typed = input.value;
-    const chars = game.querySelectorAll(".char");
 
     if (typed.length < correctCharsCount) {
       input.value = text.substring(0, correctCharsCount);
@@ -583,7 +614,7 @@ if (input) {
       const index = correctCharsCount;
       const typedChar = typed[index];
       const expectedChar = text[index];
-      const charSpan = chars[index];
+      const charSpan = cachedCharSpans[index];
 
       if (typedChar === expectedChar) {
         correctCharsCount++;
@@ -656,7 +687,7 @@ if (input) {
     }
 
     for (let i = 0; i < text.length; i++) {
-      const charSpan = chars[i];
+      const charSpan = cachedCharSpans[i];
       if (!charSpan) continue;
 
       const expected = text[i];
@@ -729,13 +760,36 @@ function showNotification(message, isError = true) {
     toast.style.transform = "translateX(-50%) translateY(100px)";
   }, 3500);
 }
+// ==========================================
+// DECLARAÇÃO DE ELEMENTOS DO DOM E ESTADO
+// ==========================================
+
+const newsOverlay = document.getElementById("newsOverlay");
+const newsList = document.getElementById("newsList");
+const newsModalBtn = document.getElementById("newsModalBtn");
+const closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
+
+const passwordOverlay = document.getElementById("passwordOverlay");
+const adminPasswordInput = document.getElementById("adminPasswordInput");
+const submitPasswordBtn = document.getElementById("submitPasswordBtn");
+const closePasswordModalBtn = document.getElementById("closePasswordModalBtn");
+
+const adminOverlay = document.getElementById("adminOverlay");
+const adminPostForm = document.getElementById("adminPostForm");
+const closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
+
+let announcements = [];
+try {
+  announcements = JSON.parse(localStorage.getItem("typing_hero_announcements")) || [];
+} catch (e) {
+  announcements = [];
+}
 
 // ==========================================
 // CHECAGEM DE USUÁRIO LOGADO
 // ==========================================
 
 function getLoggedUser() {
-  // 1. Tenta buscar em chaves padrão do localStorage
   const storedUser = localStorage.getItem("currentUser") || 
                      localStorage.getItem("user") || 
                      localStorage.getItem("usuario") ||
@@ -743,24 +797,26 @@ function getLoggedUser() {
                      
   if (storedUser) {
     try {
-      return JSON.parse(storedUser);
+      const parsed = JSON.parse(storedUser);
+      if (typeof parsed === "object" && parsed !== null) {
+        return parsed;
+      }
+      return { username: String(parsed) };
     } catch (e) {
       return { username: storedUser };
     }
   }
 
-  // 2. Busca pelo nome visível do usuário no topo da tela (ex: INFAMOS)
   const navUserEl = document.querySelector(".user-name, #userName, .profile-name, .user-info, header span");
   if (navUserEl && navUserEl.textContent.trim() !== "") {
     return { username: navUserEl.textContent.trim() };
   }
 
-  // 3. Verifica se existe o botão SAIR/LOGOUT visível no DOM
-  const hasLogoutBtn = Array.from(document.querySelectorAll("button, a")).some(el => 
-    el.textContent.trim().toUpperCase() === "SAIR" || el.textContent.trim().toUpperCase() === "LOGOUT"
-  );
+  const hasLogoutBtn = Array.from(document.querySelectorAll("button, a")).some(el => {
+    const txt = el.textContent.trim().toUpperCase();
+    return txt === "SAIR" || txt === "LOGOUT";
+  });
 
-  // Se o botão SAIR estiver na tela, confirma que está logado
   if (hasLogoutBtn) {
     return { username: "INFAMOS" };
   }
@@ -772,11 +828,10 @@ function getLoggedUser() {
 // CONTROLE DO MODAL DE BUGS & DISCORD WEBHOOK
 // ==========================================
 
-if (bugReportBtn && bugReportOverlay) {
+if (typeof bugReportBtn !== "undefined" && bugReportBtn && typeof bugReportOverlay !== "undefined" && bugReportOverlay) {
   bugReportBtn.addEventListener("click", () => {
     const user = getLoggedUser();
 
-    // Bloqueia caso o usuário não esteja logado
     if (!user) {
       if (typeof showNotification === "function") {
         showNotification("ACESSO NEGADO: Você precisa estar logado para reportar um bug!", true);
@@ -792,28 +847,28 @@ if (bugReportBtn && bugReportOverlay) {
 }
 
 function closeBugModal() {
-  if (bugReportOverlay) {
+  if (typeof bugReportOverlay !== "undefined" && bugReportOverlay) {
     bugReportOverlay.classList.remove("active");
-    if (bugReportForm) bugReportForm.reset();
-    if (bugFeedbackMsg) {
+    if (typeof bugReportForm !== "undefined" && bugReportForm) bugReportForm.reset();
+    if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
       bugFeedbackMsg.textContent = "";
       bugFeedbackMsg.className = "bug-feedback-msg";
     }
   }
 }
 
-if (closeBugModalBtn) {
+if (typeof closeBugModalBtn !== "undefined" && closeBugModalBtn) {
   closeBugModalBtn.addEventListener("click", closeBugModal);
 }
 
-if (bugReportForm) {
+if (typeof bugReportForm !== "undefined" && bugReportForm) {
   bugReportForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const user = getLoggedUser();
 
     if (!user) {
-      if (bugFeedbackMsg) {
+      if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
         bugFeedbackMsg.textContent = "Sessão expirada. Faça login para reportar.";
         bugFeedbackMsg.style.color = "#ff0066";
       }
@@ -830,17 +885,16 @@ if (bugReportForm) {
     const description = descriptionEl ? descriptionEl.value : "";
 
     if (!description.trim()) {
-      if (bugFeedbackMsg) {
+      if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
         bugFeedbackMsg.textContent = "Por favor, descreva o problema.";
         bugFeedbackMsg.style.color = "#ff0066";
       }
       return;
     }
 
-    // URL do Webhook do Discord
     const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1541949547255955476/Tgvh7uqpFbS1CrBLKhQaEunXUb5SBdKtsSLScu3N2JlpkiWHiJT_XJBxpfKMe2BbRA98";
 
-    if (bugFeedbackMsg) {
+    if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
       bugFeedbackMsg.textContent = "Enviando relatório...";
       bugFeedbackMsg.style.color = "#00ffcc";
     }
@@ -854,7 +908,7 @@ if (bugReportForm) {
       avatar_url: "https://cdn-icons-png.flaticon.com/512/682/682009.png",
       embeds: [{
         title: "Novo Bug Reportado!",
-        color: 16711782, // Cor Rosa Cyberpunk
+        color: 16711782,
         fields: [
           {
             name: "Enviado por",
@@ -893,7 +947,7 @@ if (bugReportForm) {
       });
 
       if (response.ok) {
-        if (bugFeedbackMsg) {
+        if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
           bugFeedbackMsg.textContent = "✓ Relatório enviado ao Discord com sucesso!";
           bugFeedbackMsg.className = "bug-feedback-msg success";
         }
@@ -908,7 +962,7 @@ if (bugReportForm) {
       }
     } catch (error) {
       console.error("Erro ao enviar o bug:", error);
-      if (bugFeedbackMsg) {
+      if (typeof bugFeedbackMsg !== "undefined" && bugFeedbackMsg) {
         bugFeedbackMsg.textContent = "Erro ao enviar o relato. Tente novamente.";
         bugFeedbackMsg.style.color = "#ff0066";
       }
@@ -928,7 +982,8 @@ async function sha256(str) {
 }
 
 function escapeHtml(text) {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  if (!text) return "";
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 // ==========================================
@@ -968,7 +1023,7 @@ if (newsModalBtn) {
 }
 
 // ==========================================
-// ATALHO SECRETO E AUTENTICAÇÃO DO CRIADOR (SHIFT + A)
+// ATALHO SECRETO E AUTENTICAÇÃO (SHIFT + A)
 // ==========================================
 
 window.addEventListener("keydown", (e) => {
@@ -1020,8 +1075,13 @@ if (adminPasswordInput) {
 if (adminPostForm) {
   adminPostForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const title = document.getElementById("postTitle").value.trim();
-    const content = document.getElementById("postContent").value.trim();
+    const titleEl = document.getElementById("postTitle");
+    const contentEl = document.getElementById("postContent");
+
+    const title = titleEl ? titleEl.value.trim() : "";
+    const content = contentEl ? contentEl.value.trim() : "";
+
+    if (!title || !content) return;
 
     const newPost = {
       id: Date.now(),
@@ -1047,18 +1107,18 @@ if (adminPostForm) {
 // FECHAMENTO GERAL DE MODAIS
 // ==========================================
 
-if (closeNewsModalBtn) closeNewsModalBtn.addEventListener("click", () => newsOverlay.classList.remove("active"));
-if (closePasswordModalBtn) closePasswordModalBtn.addEventListener("click", () => passwordOverlay.classList.remove("active"));
-if (closeAdminModalBtn) closeAdminModalBtn.addEventListener("click", () => adminOverlay.classList.remove("active"));
+if (closeNewsModalBtn) closeNewsModalBtn.addEventListener("click", () => newsOverlay && newsOverlay.classList.remove("active"));
+if (closePasswordModalBtn) closePasswordModalBtn.addEventListener("click", () => passwordOverlay && passwordOverlay.classList.remove("active"));
+if (closeAdminModalBtn) closeAdminModalBtn.addEventListener("click", () => adminOverlay && adminOverlay.classList.remove("active"));
 
 window.addEventListener("click", (e) => {
-  if (e.target === newsOverlay) newsOverlay.classList.remove("active");
-  if (e.target === passwordOverlay) passwordOverlay.classList.remove("active");
-  if (e.target === adminOverlay) adminOverlay.classList.remove("active");
-  if (e.target === bugReportOverlay) closeBugModal();
+  if (newsOverlay && e.target === newsOverlay) newsOverlay.classList.remove("active");
+  if (passwordOverlay && e.target === passwordOverlay) passwordOverlay.classList.remove("active");
+  if (adminOverlay && e.target === adminOverlay) adminOverlay.classList.remove("active");
+  if (typeof bugReportOverlay !== "undefined" && bugReportOverlay && e.target === bugReportOverlay) closeBugModal();
 });
 
-// Inicialização de avisos
+// Inicialização
 renderAnnouncements();
 checkUnreadNews();
 
