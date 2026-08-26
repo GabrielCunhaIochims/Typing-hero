@@ -898,7 +898,6 @@ if (bugReportForm) {
 // INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
 // ==========================================
 
-// Estado local
 let announcements = [];
 
 async function fetchAnnouncements() {
@@ -931,7 +930,7 @@ function renderAnnouncements() {
     return;
   }
 
-  const user = getLoggedUser();
+  const user = typeof getLoggedUser === "function" ? getLoggedUser() : null;
   const isUserAdmin = user && (user.username === "INFAMOS" || user.name === "INFAMOS");
 
   newsList.innerHTML = announcements.map(post => {
@@ -950,15 +949,15 @@ function renderAnnouncements() {
             ✕
           </button>
         ` : ''}
-        <h4>${escapeHtml(post.title)}</h4>
-        <p>${escapeHtml(post.content)}</p>
+        <h4>${typeof escapeHtml === "function" ? escapeHtml(post.title) : post.title}</h4>
+        <p>${typeof escapeHtml === "function" ? escapeHtml(post.content) : post.content}</p>
         <span class="news-date" style="display: block; margin-top: 8px; font-size: 0.75rem; color: #aaa;">📅 ${formattedDate}</span>
       </div>
     `;
   }).join("");
 }
 
-// Event Delegation para deletar (evita poluir a window e corrige IDs numéricos/strings)
+// Delegation de clique sem parar propagação global
 if (newsList) {
   newsList.addEventListener("click", async (e) => {
     const deleteBtn = e.target.closest(".delete-news-btn");
@@ -977,7 +976,7 @@ if (newsList) {
 
       if (error) throw error;
       
-      showNotification("Mensagem removida com sucesso!", false);
+      if (typeof showNotification === "function") showNotification("Mensagem removida com sucesso!", false);
       await loadAndRenderAnnouncements();
     } catch (err) {
       console.error("Erro ao deletar anúncio:", err.message);
@@ -995,7 +994,6 @@ function checkUnreadNews() {
   }
 }
 
-// Listeners de Interface
 if (newsModalBtn) {
   newsModalBtn.addEventListener("click", () => {
     if (newsOverlay) newsOverlay.classList.add("active");
@@ -1009,11 +1007,11 @@ if (adminPostForm) {
   adminPostForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const title = postTitleInput ? postTitleInput.value.trim() : "";
-    const content = postContentInput ? postContentInput.value.trim() : "";
+    const title = typeof postTitleInput !== "undefined" && postTitleInput ? postTitleInput.value.trim() : "";
+    const content = typeof postContentInput !== "undefined" && postContentInput ? postContentInput.value.trim() : "";
 
     if (!title || !content) {
-      showNotification("Preencha o título e o conteúdo!", true);
+      if (typeof showNotification === "function") showNotification("Preencha o título e o conteúdo!", true);
       return;
     }
 
@@ -1025,8 +1023,8 @@ if (adminPostForm) {
       if (error) throw error;
 
       adminPostForm.reset();
-      if (adminOverlay) adminOverlay.classList.remove("active");
-      showNotification("Atualização publicada com sucesso!", false);
+      if (typeof adminOverlay !== "undefined" && adminOverlay) adminOverlay.classList.remove("active");
+      if (typeof showNotification === "function") showNotification("Atualização publicada com sucesso!", false);
 
       await loadAndRenderAnnouncements();
     } catch (err) {
