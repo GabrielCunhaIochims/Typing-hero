@@ -899,6 +899,28 @@ if (bugReportForm) {
 // ==========================================
 
 // Garante que o código encontre o Supabase mesmo se estiver como _supabase
+const getSupabaseClient = () => {
+  // 1. Tenta pegar a instância criada no escopo global
+  let client = (typeof supabase !== "undefined" ? supabase : null) || 
+               (typeof window._supabase !== "undefined" ? window._supabase : null);
+
+  if (!client) return null;
+
+  // 2. Se a variável tiver o método .from, a instância já está pronta!
+  if (typeof client.from === "function") {
+    return client;
+  }
+
+  // 3. Se não tiver .from, mas tiver a biblioteca global e as chaves, inicializa a instância
+  if (typeof client.createClient === "function" && typeof SUPABASE_URL !== "undefined" && typeof SUPABASE_ANON_KEY !== "undefined") {
+    if (!window._supabaseInstance) {
+      window._supabaseInstance = client.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return window._supabaseInstance;
+  }
+
+  return null;
+};
 
 announcements = window.announcements || [];
 
