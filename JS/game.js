@@ -992,24 +992,50 @@ function escapeHtml(text) {
 
 function renderAnnouncements() {
   if (!newsList) return;
+  
   if (announcements.length === 0) {
     newsList.innerHTML = `<div style="color: #666; font-size: 0.85rem; padding: 10px; text-align: center;">Nenhuma atualização publicada ainda.</div>`;
     return;
   }
 
   newsList.innerHTML = announcements.map(post => `
-    <div class="news-card">
+    <div class="news-card" style="position: relative;">
+      <button 
+        onclick="deleteAnnouncement(${post.id})" 
+        class="delete-news-btn"
+        title="Excluir mensagem"
+        style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #ff0066; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; font-weight: bold;"
+      >
+        ✕
+      </button>
       <h4>${escapeHtml(post.title)}</h4>
       <p>${escapeHtml(post.content)}</p>
-      <span class="news-date">📅 ${post.date}</span>
+      <span class="news-date" style="display: block; margin-top: 8px; font-size: 0.75rem; color: #aaa;">📅 ${post.date}</span>
     </div>
   `).join("");
+}
+
+// Função para excluir anúncio por ID
+function deleteAnnouncement(id) {
+  if (!confirm("Tem certeza que deseja excluir esta mensagem?")) return;
+
+  announcements = announcements.filter(post => post.id !== id);
+  localStorage.setItem("typing_hero_announcements", JSON.stringify(announcements));
+  
+  renderAnnouncements();
+  checkUnreadNews();
+
+  if (typeof showNotification === "function") {
+    showNotification("Mensagem excluída com sucesso!", false);
+  }
 }
 
 function checkUnreadNews() {
   const lastRead = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
   if (announcements.length > lastRead && newsModalBtn) {
     newsModalBtn.classList.add("has-unread-news");
+  } else if (newsModalBtn && announcements.length <= lastRead) {
+    newsModalBtn.classList.remove("has-unread-news");
   }
 }
 
@@ -1022,6 +1048,54 @@ if (newsModalBtn) {
   });
 }
 
+// ==========================================
+// ENVIO DO FORMULÁRIO DO PAINEL ADMIN
+// ==========================================
+
+if (adminPostForm) {
+  adminPostForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const titleEl = document.getElementById("postTitle") || postTitleInput;
+    const contentEl = document.getElementById("postContent") || postContentInput;
+
+    const title = titleEl ? titleEl.value.trim() : "";
+    const content = contentEl ? contentEl.value.trim() : "";
+
+    if (!title || !content) {
+      if (typeof showNotification === "function") {
+        showNotification("Preencha o título e o conteúdo!", true);
+      } else {
+        alert("Preencha o título e o conteúdo!");
+      }
+      return;
+    }
+
+    // Formatação da data e hora atual (ex: 25/08/2026 às 14:30)
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString("pt-BR") + " às " + now.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+
+    const newPost = {
+      id: Date.now(),
+      title: title,
+      content: content,
+      date: formattedDate
+    };
+
+    announcements.unshift(newPost);
+    localStorage.setItem("typing_hero_announcements", JSON.stringify(announcements));
+
+    adminPostForm.reset();
+    if (adminOverlay) adminOverlay.classList.remove("active");
+    
+    renderAnnouncements();
+    checkUnreadNews();
+
+    if (typeof showNotification === "function") {
+      showNotification("Atualização publicada com sucesso!", false);
+    }
+  });
+}
 // ==========================================
 // ELEMENTOS DO PAINEL ADMIN E ANÚNCIOS
 // ==========================================
