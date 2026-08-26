@@ -987,18 +987,31 @@ function escapeHtml(text) {
 }
 
 // ==========================================
-// INTEGRAÇÃO DE ANÚNCIOS / PATCH NOTES (SUPABASE)
+// SELEÇÃO COMPLETA DOS ELEMENTOS DO DOM
 // ==========================================
+
+const newsModalBtn = document.getElementById("newsModalBtn");
+const newsOverlay = document.getElementById("newsOverlay");
+const closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
+
+const passwordOverlay = document.getElementById("passwordOverlay");
+const adminPasswordInput = document.getElementById("adminPasswordInput");
+const submitPasswordBtn = document.getElementById("submitPasswordBtn");
+const closePasswordModalBtn = document.getElementById("closePasswordModalBtn");
+
+const adminOverlay = document.getElementById("adminOverlay");
+const adminPostForm = document.getElementById("adminPostForm");
+const postTitleInput = document.getElementById("postTitle");
+const postContentInput = document.getElementById("postContent");
+const closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
 
 let announcements = [];
 
-// Elementos do DOM
-const newsModalBtn = document.getElementById("newsModalBtn");
-const newsOverlay = document.getElementById("newsOverlay");
-const adminPostForm = document.getElementById("adminPostForm");
-const adminOverlay = document.getElementById("adminOverlay");
+// ==========================================
+// INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
+// ==========================================
 
-// Busca os anúncios salvos na tabela 'announcements'
+// Busca os anúncios salvos no banco
 async function fetchAnnouncements() {
   try {
     const { data, error } = await supabase
@@ -1053,7 +1066,7 @@ function renderAnnouncements() {
   }).join("");
 }
 
-// Exclui um anúncio da tabela no Supabase
+// Exclui um anúncio do Supabase
 async function deleteAnnouncement(id) {
   if (!confirm("Tem certeza que deseja excluir esta mensagem do banco de dados?")) return;
 
@@ -1097,16 +1110,13 @@ if (newsModalBtn) {
   });
 }
 
-// Envio do formulário do painel admin enviando para o Supabase
+// Envio do formulário do painel admin enviando PARA O SUPABASE
 if (adminPostForm) {
   adminPostForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const titleEl = document.getElementById("postTitle");
-    const contentEl = document.getElementById("postContent");
-
-    const title = titleEl ? titleEl.value.trim() : "";
-    const content = contentEl ? contentEl.value.trim() : "";
+    const title = postTitleInput ? postTitleInput.value.trim() : "";
+    const content = postContentInput ? postContentInput.value.trim() : "";
 
     if (!title || !content) {
       if (typeof showNotification === "function") {
@@ -1139,15 +1149,6 @@ if (adminPostForm) {
   });
 }
 
-// Inicializa buscando os dados
-fetchAnnouncements();
-// ==========================================
-// ELEMENTOS DO PAINEL ADMIN E ANÚNCIOS
-// ==========================================
-
-const postTitleInput = document.getElementById("postTitle");
-const postContentInput = document.getElementById("postContent");
-
 // ==========================================
 // ATALHO SECRETO E AUTENTICAÇÃO (SHIFT + A)
 // ==========================================
@@ -1176,6 +1177,12 @@ window.addEventListener("keydown", (e) => {
 async function verifyPassword() {
   if (!adminPasswordInput) return;
   const typedPassword = adminPasswordInput.value;
+  
+  if (typeof sha256 !== "function" || typeof ADMIN_PASSWORD_HASH === "undefined") {
+    console.error("Função sha256 ou variável ADMIN_PASSWORD_HASH não definida.");
+    return;
+  }
+
   const hash = await sha256(typedPassword);
 
   if (hash === ADMIN_PASSWORD_HASH) {
@@ -1198,47 +1205,6 @@ if (adminPasswordInput) {
   });
 }
 
-// CORREÇÃO: Captura direta das entradas e validação no submit
-if (adminPostForm) {
-  adminPostForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const titleEl = document.getElementById("postTitle") || postTitleInput;
-    const contentEl = document.getElementById("postContent") || postContentInput;
-
-    const title = titleEl ? titleEl.value.trim() : "";
-    const content = contentEl ? contentEl.value.trim() : "";
-
-    if (!title || !content) {
-      if (typeof showNotification === "function") {
-        showNotification("Preencha o título e o conteúdo!", true);
-      } else {
-        alert("Preencha o título e o conteúdo!");
-      }
-      return;
-    }
-
-    const newPost = {
-      id: Date.now(),
-      title: title,
-      content: content,
-      date: new Date().toLocaleDateString("pt-BR") + " às " + new Date().toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })
-    };
-
-    announcements.unshift(newPost);
-    localStorage.setItem("typing_hero_announcements", JSON.stringify(announcements));
-
-    adminPostForm.reset();
-    if (adminOverlay) adminOverlay.classList.remove("active");
-    
-    renderAnnouncements();
-    checkUnreadNews();
-
-    if (typeof showNotification === "function") {
-      showNotification("Atualização publicada com sucesso!", false);
-    }
-  });
-}
 // ==========================================
 // FECHAMENTO GERAL DE MODAIS
 // ==========================================
@@ -1251,10 +1217,11 @@ window.addEventListener("click", (e) => {
   if (newsOverlay && e.target === newsOverlay) newsOverlay.classList.remove("active");
   if (passwordOverlay && e.target === passwordOverlay) passwordOverlay.classList.remove("active");
   if (adminOverlay && e.target === adminOverlay) adminOverlay.classList.remove("active");
-  if (typeof bugReportOverlay !== "undefined" && bugReportOverlay && e.target === bugReportOverlay) closeBugModal();
+  if (typeof bugReportOverlay !== "undefined" && bugReportOverlay && e.target === bugReportOverlay && typeof closeBugModal === "function") {
+    closeBugModal();
+  }
 });
 
-// Inicialização
-renderAnnouncements();
-checkUnreadNews();
+// Inicialização: carrega os anúncios diretamente do Supabase
+fetchAnnouncements();
 
