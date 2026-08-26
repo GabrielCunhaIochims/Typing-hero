@@ -1008,8 +1008,26 @@ const closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
 let announcements = [];
 
 // ==========================================
-// INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
+// INTEGRAÇÃO DE ANÚNCIOS / PATCH NOTES (SUPABASE)
 // ==========================================
+
+// Reutiliza ou declara as variáveis para evitar "already been declared"
+var newsModalBtn = document.getElementById("newsModalBtn");
+var newsOverlay = document.getElementById("newsOverlay");
+var closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
+
+var passwordOverlay = document.getElementById("passwordOverlay");
+var adminPasswordInput = document.getElementById("adminPasswordInput");
+var submitPasswordBtn = document.getElementById("submitPasswordBtn");
+var closePasswordModalBtn = document.getElementById("closePasswordModalBtn");
+
+var adminOverlay = document.getElementById("adminOverlay");
+var adminPostForm = document.getElementById("adminPostForm");
+var postTitleInput = document.getElementById("postTitle");
+var postContentInput = document.getElementById("postContent");
+var closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
+
+let announcements = [];
 
 // Busca os anúncios salvos no banco
 async function fetchAnnouncements() {
@@ -1110,7 +1128,7 @@ if (newsModalBtn) {
   });
 }
 
-// Envio do formulário do painel admin enviando PARA O SUPABASE
+// Envio do formulário do painel admin enviado ao Supabase
 if (adminPostForm) {
   adminPostForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1222,6 +1240,5 @@ window.addEventListener("click", (e) => {
   }
 });
 
-// Inicialização: carrega os anúncios diretamente do Supabase
+// Inicialização
 fetchAnnouncements();
-
