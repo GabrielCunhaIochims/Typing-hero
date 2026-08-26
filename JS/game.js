@@ -987,57 +987,105 @@ function escapeHtml(text) {
 }
 
 // ==========================================
-// SISTEMA DE PATCH NOTES & ANÚNCIOS
+// INTEGRAÇÃO DE ANÚNCIOS / PATCH NOTES (SUPABASE)
 // ==========================================
 
+let announcements = [];
+
+// Busca os anúncios salvos na tabela 'announcements'
+async function fetchAnnouncements() {
+  try {
+    // Usa a instância já existente do Supabase no seu projeto
+    const { data, error } = await supabase
+      .from("announcements")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    announcements = data || [];
+    renderAnnouncements();
+    checkUnreadNews();
+  } catch (err) {
+    console.error("Erro ao carregar anúncios do Supabase:", err.message);
+  }
+}
+
+// Renderiza os anúncios na interface
 function renderAnnouncements() {
+  const newsList = document.getElementById("newsList");
   if (!newsList) return;
-  
+
   if (announcements.length === 0) {
     newsList.innerHTML = `<div style="color: #666; font-size: 0.85rem; padding: 10px; text-align: center;">Nenhuma atualização publicada ainda.</div>`;
     return;
   }
 
-  newsList.innerHTML = announcements.map(post => `
-    <div class="news-card" style="position: relative;">
-      <button 
-        onclick="deleteAnnouncement(${post.id})" 
-        class="delete-news-btn"
-        title="Excluir mensagem"
-        style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #ff0066; cursor: pointer; font-size: 1.1rem; padding: 2px 6px; font-weight: bold;"
-      >
-        ✕
-      </button>
-      <h4>${escapeHtml(post.title)}</h4>
-      <p>${escapeHtml(post.content)}</p>
-      <span class="news-date" style="display: block; margin-top: 8px; font-size: 0.75rem; color: #aaa;">📅 ${post.date}</span>
-    </div>
-  `).join("");
+  const user = typeof getLoggedUser === "function" ? getLoggedUser() : null;
+  const isUserAdmin = user && (user.username === "INFAMOS" || user.name === "INFAMOS");
+
+  newsList.innerHTML = announcements.map(post => {
+    const dateObj = new Date(post.created_at);
+    const formattedDate = dateObj.toLocaleDateString("pt-BR") + " às " + dateObj.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
+
+    return `
+      <div class="news-card" style="position: relative;">
+        ${isUserAdmin ? `
+          <button 
+            onclick="deleteAnnouncement(${post.id})" 
+            class="delete-news-btn"
+            title="Excluir mensagem"
+            style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #ff0066; cursor: pointer; font-size: 1.1rem; font-weight: bold;"
+          >
+            ✕
+          </button>
+        ` : ''}
+        <h4>${typeof escapeHtml === "function" ? escapeHtml(post.title) : post.title}</h4>
+        <p>${typeof escapeHtml === "function" ? escapeHtml(post.content) : post.content}</p>
+        <span class="news-date" style="display: block; margin-top: 8px; font-size: 0.75rem; color: #aaa;">📅 ${formattedDate}</span>
+      </div>
+    `;
+  }).join("");
 }
 
-// Função para excluir anúncio por ID
-function deleteAnnouncement(id) {
-  if (!confirm("Tem certeza que deseja excluir esta mensagem?")) return;
+// Exclui um anúncio da tabela no Supabase
+async function deleteAnnouncement(id) {
+  if (!confirm("Tem certeza que deseja excluir esta mensagem do banco de dados?")) return;
 
-  announcements = announcements.filter(post => post.id !== id);
-  localStorage.setItem("typing_hero_announcements", JSON.stringify(announcements));
-  
-  renderAnnouncements();
-  checkUnreadNews();
+  try {
+    const { error } = await supabase
+      .from("announcements")
+      .delete()
+      .eq("id", id);
 
-  if (typeof showNotification === "function") {
-    showNotification("Mensagem excluída com sucesso!", false);
+    if (error) throw error;
+
+    if (typeof showNotification === "function") {
+      showNotification("Mensagem removida com sucesso!", false);
+    }
+
+    fetchAnnouncements();
+  } catch (err) {
+    console.error("Erro ao deletar anúncio:", err.message);
+    alert("Erro ao excluir anúncio.");
   }
 }
 
+// Controle de notícias não lidas
 function checkUnreadNews() {
+  const newsModalBtn = document.getElementById("newsModalBtn");
   const lastRead = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
+  
   if (announcements.length > lastRead && newsModalBtn) {
     newsModalBtn.classList.add("has-unread-news");
   } else if (newsModalBtn && announcements.length <= lastRead) {
     newsModalBtn.classList.remove("has-unread-news");
   }
 }
+
+// Evento ao abrir o modal de notícias
+const newsModalBtn = document.getElementById("newsModalBtn");
+const newsOverlay = document.getElementById("newsOverlay");
 
 if (newsModalBtn) {
   newsModalBtn.addEventListener("click", () => {
@@ -1047,6 +1095,54 @@ if (newsModalBtn) {
     newsModalBtn.classList.remove("has-unread-news");
   });
 }
+
+// Envio do formulário do painel admin enviando para o Supabase
+const adminPostForm = document.getElementById("adminPostForm");
+const adminOverlay = document.getElementById("adminOverlay");
+
+if (adminPostForm) {
+  adminPostForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const titleEl = document.getElementById("postTitle");
+    const contentEl = document.getElementById("postContent");
+
+    const title = titleEl ? titleEl.value.trim() : "";
+    const content = contentEl ? contentEl.value.trim() : "";
+
+    if (!title || !content) {
+      if (typeof showNotification === "function") {
+        showNotification("Preencha o título e o conteúdo!", true);
+      } else {
+        alert("Preencha o título e o conteúdo!");
+      }
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("announcements")
+        .insert([{ title, content }]);
+
+      if (error) throw error;
+
+      adminPostForm.reset();
+      if (adminOverlay) adminOverlay.classList.remove("active");
+
+      if (typeof showNotification === "function") {
+        showNotification("Atualização publicada com sucesso!", false);
+      }
+
+      fetchAnnouncements();
+    } catch (err) {
+      console.error("Erro ao inserir anúncio:", err.message);
+      alert("Erro ao salvar mensagem no Supabase.");
+    }
+  });
+}
+
+// Carrega os dados assim que o script executa
+fetchAnnouncements();
 
 // ==========================================
 // ENVIO DO FORMULÁRIO DO PAINEL ADMIN
