@@ -992,10 +992,15 @@ function escapeHtml(text) {
 
 let announcements = [];
 
+// Elementos do DOM
+const newsModalBtn = document.getElementById("newsModalBtn");
+const newsOverlay = document.getElementById("newsOverlay");
+const adminPostForm = document.getElementById("adminPostForm");
+const adminOverlay = document.getElementById("adminOverlay");
+
 // Busca os anúncios salvos na tabela 'announcements'
 async function fetchAnnouncements() {
   try {
-    // Usa a instância já existente do Supabase no seu projeto
     const { data, error } = await supabase
       .from("announcements")
       .select("*")
@@ -1073,7 +1078,6 @@ async function deleteAnnouncement(id) {
 
 // Controle de notícias não lidas
 function checkUnreadNews() {
-  const newsModalBtn = document.getElementById("newsModalBtn");
   const lastRead = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
   
   if (announcements.length > lastRead && newsModalBtn) {
@@ -1084,9 +1088,6 @@ function checkUnreadNews() {
 }
 
 // Evento ao abrir o modal de notícias
-const newsModalBtn = document.getElementById("newsModalBtn");
-const newsOverlay = document.getElementById("newsOverlay");
-
 if (newsModalBtn) {
   newsModalBtn.addEventListener("click", () => {
     if (newsOverlay) newsOverlay.classList.add("active");
@@ -1097,9 +1098,6 @@ if (newsModalBtn) {
 }
 
 // Envio do formulário do painel admin enviando para o Supabase
-const adminPostForm = document.getElementById("adminPostForm");
-const adminOverlay = document.getElementById("adminOverlay");
-
 if (adminPostForm) {
   adminPostForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1141,57 +1139,8 @@ if (adminPostForm) {
   });
 }
 
-// Carrega os dados assim que o script executa
+// Inicializa buscando os dados
 fetchAnnouncements();
-
-// ==========================================
-// ENVIO DO FORMULÁRIO DO PAINEL ADMIN
-// ==========================================
-
-if (adminPostForm) {
-  adminPostForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const titleEl = document.getElementById("postTitle") || postTitleInput;
-    const contentEl = document.getElementById("postContent") || postContentInput;
-
-    const title = titleEl ? titleEl.value.trim() : "";
-    const content = contentEl ? contentEl.value.trim() : "";
-
-    if (!title || !content) {
-      if (typeof showNotification === "function") {
-        showNotification("Preencha o título e o conteúdo!", true);
-      } else {
-        alert("Preencha o título e o conteúdo!");
-      }
-      return;
-    }
-
-    // Formatação da data e hora atual (ex: 25/08/2026 às 14:30)
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString("pt-BR") + " às " + now.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
-
-    const newPost = {
-      id: Date.now(),
-      title: title,
-      content: content,
-      date: formattedDate
-    };
-
-    announcements.unshift(newPost);
-    localStorage.setItem("typing_hero_announcements", JSON.stringify(announcements));
-
-    adminPostForm.reset();
-    if (adminOverlay) adminOverlay.classList.remove("active");
-    
-    renderAnnouncements();
-    checkUnreadNews();
-
-    if (typeof showNotification === "function") {
-      showNotification("Atualização publicada com sucesso!", false);
-    }
-  });
-}
 // ==========================================
 // ELEMENTOS DO PAINEL ADMIN E ANÚNCIOS
 // ==========================================
