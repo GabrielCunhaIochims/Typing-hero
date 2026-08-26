@@ -897,11 +897,28 @@ if (bugReportForm) {
 // ==========================================
 // INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
 // ==========================================
+// ==========================================
+// INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
+// ==========================================
 
+// Garante que o código encontre o Supabase mesmo se estiver como _supabase
+const getSupabaseClient = () => {
+  if (typeof supabase !== "undefined") return supabase;
+  if (typeof window._supabase !== "undefined") return window._supabase;
+  return null;
+};
+
+let announcements = [];
 
 async function fetchAnnouncements() {
   try {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    if (!client) {
+      console.error("Cliente Supabase não encontrado!");
+      return [];
+    }
+
+    const { data, error } = await client
       .from("announcements")
       .select("id, title, content, created_at")
       .order("created_at", { ascending: false })
@@ -910,7 +927,7 @@ async function fetchAnnouncements() {
     if (error) throw error;
     return data || [];
   } catch (err) {
-    console.error("Erro ao carregar anúncios do Supabase:", err.message);
+    console.error("Erro ao carregar anúncios do Supabase:", err.message || err);
     return [];
   }
 }
@@ -956,7 +973,7 @@ function renderAnnouncements() {
   }).join("");
 }
 
-// Delegation de clique sem parar propagação global
+// Delegation de clique para exclusão
 if (newsList) {
   newsList.addEventListener("click", async (e) => {
     const deleteBtn = e.target.closest(".delete-news-btn");
@@ -968,7 +985,10 @@ if (newsList) {
     if (!confirm("Tem certeza que deseja excluir esta mensagem do banco de dados?")) return;
 
     try {
-      const { error } = await supabase
+      const client = getSupabaseClient();
+      if (!client) throw new Error("Cliente Supabase não encontrado.");
+
+      const { error } = await client
         .from("announcements")
         .delete()
         .eq("id", id);
@@ -978,8 +998,8 @@ if (newsList) {
       if (typeof showNotification === "function") showNotification("Mensagem removida com sucesso!", false);
       await loadAndRenderAnnouncements();
     } catch (err) {
-      console.error("Erro ao deletar anúncio:", err.message);
-      alert("Erro ao excluir anúncio.");
+      console.error("Erro ao deletar anúncio:", err);
+      alert(`Erro ao excluir anúncio: ${err.message || "Falha na requisição"}`);
     }
   });
 }
@@ -1015,7 +1035,10 @@ if (adminPostForm) {
     }
 
     try {
-      const { error } = await supabase
+      const client = getSupabaseClient();
+      if (!client) throw new Error("Cliente Supabase não encontrado. Verifique a inicialização.");
+
+      const { error } = await client
         .from("announcements")
         .insert([{ title, content }]);
 
@@ -1027,8 +1050,9 @@ if (adminPostForm) {
 
       await loadAndRenderAnnouncements();
     } catch (err) {
-      console.error("Erro ao inserir anúncio:", err.message);
-      alert("Erro ao salvar mensagem no Supabase.");
+      console.error("Erro detalhado ao inserir anúncio:", err);
+      // Exibe o motivo exato retornado pelo Supabase (ex: erro de permissão RLS)
+      alert(`Erro no Supabase: ${err.message || err.details || "Não foi possível salvar a mensagem."}`);
     }
   });
 }
