@@ -902,16 +902,25 @@ async function fetchAnnouncements() {
   try {
     const { data, error } = await supabase
       .from("announcements")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .select("id, title, content, created_at") // Select explicit fields
+      .order("created_at", { ascending: false })
+      .limit(20); // Cap results for performance
 
     if (error) throw error;
-    announcements = data || [];
-    renderAnnouncements();
-    checkUnreadNews();
+
+    return data || [];
   } catch (err) {
     console.error("Erro ao carregar anúncios do Supabase:", err.message);
+    return [];
   }
+}
+
+// Separate side-effect handler
+async function loadAndRenderAnnouncements() {
+  const data = await fetchAnnouncements();
+  announcements = data;
+  renderAnnouncements();
+  checkUnreadNews();
 }
 
 function renderAnnouncements() {
