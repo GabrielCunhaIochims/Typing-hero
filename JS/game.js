@@ -1033,8 +1033,7 @@ checkUnreadNews();
 // CONFIGURAÇÕES E GERENCIAMENTO DE ESTADO
 // ==========================================
 
-// Hash SHA-256 da senha "1234" (Altere se desejar outra senha)
-const ADMIN_PASSWORD_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+const ADMIN_PASSWORD_HASH = "0fc38699678759bfc9d851f132fca6824f6eb0c98f6122acdfaa83c9df3a44fc";
 
 // Elementos do Modal de Patch Notes e Painel Admin
 const newsModalBtn = document.getElementById("newsModalBtn");
@@ -1222,9 +1221,6 @@ window.addEventListener("click", (e) => {
   if (e.target === bugReportOverlay) bugReportOverlay.classList.remove("active");
 });
 
-// ==========================================
-// INICIALIZAÇÃO
-// ==========================================
 renderAnnouncements();
 checkUnreadNews();
 
