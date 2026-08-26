@@ -1128,5 +1128,13 @@ window.addEventListener("click", (e) => {
   if (bugReportOverlay && e.target === bugReportOverlay) closeBugModal();
 });
 
+// Carrega os anúncios assim que o script terminar de ler a página
+document.addEventListener("DOMContentLoaded", () => {
+  loadAndRenderAnnouncements();
+});
+// Caso o DOM já tenha carregado:
+if (document.readyState === "complete" || document.readyState === "interactive") {
+  loadAndRenderAnnouncements();
+}
 // Inicializa a chamada dos anúncios no Supabase
 fetchAnnouncements();
