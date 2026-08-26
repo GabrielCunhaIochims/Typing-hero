@@ -898,6 +898,9 @@ if (bugReportForm) {
 // INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
 // ==========================================
 
+// Estado local
+let announcements = [];
+
 async function fetchAnnouncements() {
   try {
     const { data, error } = await supabase
@@ -935,14 +938,11 @@ function renderAnnouncements() {
     const dateObj = new Date(post.created_at);
     const formattedDate = dateObj.toLocaleDateString("pt-BR") + " às " + dateObj.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
 
-    // Sanitize parameters passed to delete function
-    const postId = typeof post.id === "string" ? `'${post.id}'` : post.id;
-
     return `
       <div class="news-card" style="position: relative;">
         ${isUserAdmin ? `
           <button 
-            onclick="deleteAnnouncement(${postId})" 
+            data-id="${post.id}" 
             class="delete-news-btn"
             title="Excluir mensagem"
             style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #ff0066; cursor: pointer; font-size: 1.1rem; font-weight: bold;"
@@ -958,26 +958,33 @@ function renderAnnouncements() {
   }).join("");
 }
 
-// Attach directly to window to avoid scope loss in module environments
-window.deleteAnnouncement = async function(id) {
-  if (!confirm("Tem certeza que deseja excluir esta mensagem do banco de dados?")) return;
+// Event Delegation para deletar (evita poluir a window e corrige IDs numéricos/strings)
+if (newsList) {
+  newsList.addEventListener("click", async (e) => {
+    const deleteBtn = e.target.closest(".delete-news-btn");
+    if (!deleteBtn) return;
 
-  try {
-    const { error } = await supabase
-      .from("announcements")
-      .delete()
-      .eq("id", id);
+    const id = deleteBtn.dataset.id;
+    if (!id) return;
 
-    if (error) throw error;
-    showNotification("Mensagem removida com sucesso!", false);
-    
-    // Fix: Trigger full re-fetch and re-render lifecycle
-    await loadAndRenderAnnouncements();
-  } catch (err) {
-    console.error("Erro ao deletar anúncio:", err.message);
-    alert("Erro ao excluir anúncio.");
-  }
-};
+    if (!confirm("Tem certeza que deseja excluir esta mensagem do banco de dados?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("announcements")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      
+      showNotification("Mensagem removida com sucesso!", false);
+      await loadAndRenderAnnouncements();
+    } catch (err) {
+      console.error("Erro ao deletar anúncio:", err.message);
+      alert("Erro ao excluir anúncio.");
+    }
+  });
+}
 
 function checkUnreadNews() {
   const lastRead = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
@@ -988,6 +995,7 @@ function checkUnreadNews() {
   }
 }
 
+// Listeners de Interface
 if (newsModalBtn) {
   newsModalBtn.addEventListener("click", () => {
     if (newsOverlay) newsOverlay.classList.add("active");
@@ -1020,7 +1028,6 @@ if (adminPostForm) {
       if (adminOverlay) adminOverlay.classList.remove("active");
       showNotification("Atualização publicada com sucesso!", false);
 
-      // Fix: Trigger full re-fetch and re-render lifecycle
       await loadAndRenderAnnouncements();
     } catch (err) {
       console.error("Erro ao inserir anúncio:", err.message);
