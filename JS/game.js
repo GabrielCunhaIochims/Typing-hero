@@ -898,7 +898,6 @@ if (bugReportForm) {
 // INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
 // ==========================================
 
-let announcements = [];
 
 async function fetchAnnouncements() {
   try {
