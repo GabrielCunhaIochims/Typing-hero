@@ -908,7 +908,7 @@ const getSupabaseClient = () => {
   return null;
 };
 
-let announcements = [];
+var announcements = window.announcements || [];
 
 async function fetchAnnouncements() {
   try {
