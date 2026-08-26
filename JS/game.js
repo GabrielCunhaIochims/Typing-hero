@@ -1033,6 +1033,10 @@ checkUnreadNews();
 // CONFIGURAÇÕES E GERENCIAMENTO DE ESTADO
 // ==========================================
 
+// ==========================================
+// CONFIGURAÇÕES E GERENCIAMENTO DE ESTADO
+// ==========================================
+
 const ADMIN_PASSWORD_HASH = "0fc38699678759bfc9d851f132fca6824f6eb0c98f6122acdfaa83c9df3a44fc";
 
 // Elementos do Modal de Patch Notes e Painel Admin
@@ -1118,6 +1122,16 @@ if (newsModalBtn) {
 
 // Pressione Shift + A para abrir a tela de autenticação
 window.addEventListener("keydown", (e) => {
+  // Ignora o atalho se o usuário estiver digitando em uma caixa de texto
+  const activeElement = document.activeElement;
+  const isTyping = activeElement && (
+    activeElement.tagName === "INPUT" ||
+    activeElement.tagName === "TEXTAREA" ||
+    activeElement.tagName === "SELECT"
+  );
+
+  if (isTyping) return;
+
   if (e.shiftKey && (e.key === "A" || e.key === "a")) {
     if (passwordOverlay) {
       passwordOverlay.classList.add("active");
@@ -1221,7 +1235,7 @@ window.addEventListener("click", (e) => {
   if (e.target === bugReportOverlay) bugReportOverlay.classList.remove("active");
 });
 
+// Inicialização
 renderAnnouncements();
 checkUnreadNews();
-
 
