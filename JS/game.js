@@ -902,12 +902,11 @@ async function fetchAnnouncements() {
   try {
     const { data, error } = await supabase
       .from("announcements")
-      .select("id, title, content, created_at") // Select explicit fields
+      .select("id, title, content, created_at")
       .order("created_at", { ascending: false })
-      .limit(20); // Cap results for performance
+      .limit(20);
 
     if (error) throw error;
-
     return data || [];
   } catch (err) {
     console.error("Erro ao carregar anúncios do Supabase:", err.message);
@@ -915,10 +914,8 @@ async function fetchAnnouncements() {
   }
 }
 
-// Separate side-effect handler
 async function loadAndRenderAnnouncements() {
-  const data = await fetchAnnouncements();
-  announcements = data;
+  announcements = await fetchAnnouncements();
   renderAnnouncements();
   checkUnreadNews();
 }
@@ -938,11 +935,14 @@ function renderAnnouncements() {
     const dateObj = new Date(post.created_at);
     const formattedDate = dateObj.toLocaleDateString("pt-BR") + " às " + dateObj.toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' });
 
+    // Sanitize parameters passed to delete function
+    const postId = typeof post.id === "string" ? `'${post.id}'` : post.id;
+
     return `
       <div class="news-card" style="position: relative;">
         ${isUserAdmin ? `
           <button 
-            onclick="deleteAnnouncement(${post.id})" 
+            onclick="deleteAnnouncement(${postId})" 
             class="delete-news-btn"
             title="Excluir mensagem"
             style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #ff0066; cursor: pointer; font-size: 1.1rem; font-weight: bold;"
@@ -958,7 +958,8 @@ function renderAnnouncements() {
   }).join("");
 }
 
-async function deleteAnnouncement(id) {
+// Attach directly to window to avoid scope loss in module environments
+window.deleteAnnouncement = async function(id) {
   if (!confirm("Tem certeza que deseja excluir esta mensagem do banco de dados?")) return;
 
   try {
@@ -969,12 +970,14 @@ async function deleteAnnouncement(id) {
 
     if (error) throw error;
     showNotification("Mensagem removida com sucesso!", false);
-    fetchAnnouncements();
+    
+    // Fix: Trigger full re-fetch and re-render lifecycle
+    await loadAndRenderAnnouncements();
   } catch (err) {
     console.error("Erro ao deletar anúncio:", err.message);
     alert("Erro ao excluir anúncio.");
   }
-}
+};
 
 function checkUnreadNews() {
   const lastRead = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
@@ -1016,7 +1019,9 @@ if (adminPostForm) {
       adminPostForm.reset();
       if (adminOverlay) adminOverlay.classList.remove("active");
       showNotification("Atualização publicada com sucesso!", false);
-      fetchAnnouncements();
+
+      // Fix: Trigger full re-fetch and re-render lifecycle
+      await loadAndRenderAnnouncements();
     } catch (err) {
       console.error("Erro ao inserir anúncio:", err.message);
       alert("Erro ao salvar mensagem no Supabase.");
