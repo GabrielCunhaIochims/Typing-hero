@@ -22,6 +22,10 @@ body {
   padding: 10px;
 }
 
+audio {
+  display: none;
+}
+
 /* --- FUNDO COM GRID E BRILHO FLOAT --- */
 .bg-grid {
   position: fixed;
@@ -118,27 +122,33 @@ h1 {
   filter: drop-shadow(0 0 4px #00ffcc);
 }
 
-.auth-btn {
+.auth-btn,
+.cyber-nav-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 6px 14px;
-  background: linear-gradient(135deg, rgba(0, 255, 204, 0.15), rgba(0, 135, 95, 0.3));
-  border: 1px solid #00ffcc;
   border-radius: 12px;
-  color: #00ffcc;
-  text-decoration: none;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
+  cursor: pointer;
   transition: all 0.2s ease-in-out;
 }
 
-.auth-btn:hover {
+.auth-btn {
+  background: linear-gradient(135deg, rgba(0, 255, 204, 0.15), rgba(0, 135, 95, 0.3));
+  border: 1px solid #00ffcc;
+  color: #00ffcc;
+  text-decoration: none;
+}
+
+.auth-btn:hover,
+.cyber-nav-btn:hover {
   background: #00ffcc;
   color: #121214;
-  box-shadow: 0 0 12px rgba(0, 255, 204, 0.6);
+  box-shadow: 0 0 14px rgba(0, 255, 204, 0.6);
   transform: translateY(-1px);
 }
 
@@ -146,26 +156,9 @@ h1 {
   background: rgba(0, 255, 204, 0.08);
   border: 1px solid #00ffcc;
   color: #00ffcc;
-  padding: 6px 14px;
-  border-radius: 12px;
   font-family: 'Orbitron', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  display: inline-flex;
-  align-items: center;
   gap: 6px;
   box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
-}
-
-.cyber-nav-btn:hover {
-  background: #00ffcc;
-  color: #121214;
-  box-shadow: 0 0 14px rgba(0, 255, 204, 0.6);
-  transform: translateY(-1px);
 }
 
 .has-unread-news {
@@ -179,26 +172,26 @@ h1 {
   0% { box-shadow: 0 0 8px rgba(255, 0, 106, 0.3); }
   100% { box-shadow: 0 0 18px rgba(255, 0, 106, 0.8); }
 }
-/* --- CONTAINER PRINCIPAL DA SELEÇÃO E LEADERBOARD --- */
+
+/* --- CONTAINER SELEÇÃO E LEADERBOARD --- */
 .song-selector-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   width: 100%;
-  max-width: 1100px; /* Aumentado para dar espaço suficiente aos dois blocos */
+  max-width: 1100px;
   margin: 0 auto 20px auto;
-  flex-wrap: wrap; /* Garante que quebre a linha em telas menores */
+  flex-wrap: wrap;
   position: relative;
   z-index: 1;
 }
 
-/* Grupo do Seletor + PB Card (Lado Esquerdo) */
 .selector-group-wrapper {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex: 1 1 500px; /* Cresce e encolhe com flexibilidade */
+  flex: 1 1 500px;
   min-width: 300px;
 }
 
@@ -241,7 +234,8 @@ h1 {
   background: #0a0a0f;
   color: #e0e0e0;
 }
-/* --- BARRA DE SELEÇÃO & MINI CARD DE RECORDE (PB) --- */
+
+/* --- MINI CARD DE RECORDE (PB) --- */
 .user-pb-card {
   background: rgba(18, 18, 20, 0.85);
   backdrop-filter: blur(8px);
@@ -252,7 +246,7 @@ h1 {
   flex-direction: column;
   justify-content: center;
   min-width: 200px;
-  flex-shrink: 0; /* Impede o card de esmagar */
+  flex-shrink: 0;
   box-shadow: 0 0 12px rgba(0, 255, 204, 0.08), inset 0 0 10px rgba(0, 255, 204, 0.03);
   transition: border-color 0.3s;
 }
@@ -298,8 +292,14 @@ h1 {
   margin-left: auto;
   box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
 }
+
 /* --- BOTÕES GLOBAIS --- */
-.btn-group { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+.btn-group { 
+  display: flex; 
+  gap: 15px; 
+  flex-wrap: wrap; 
+  justify-content: center; 
+}
 
 .btn {
   font-family: 'Orbitron', sans-serif;
@@ -339,16 +339,15 @@ h1 {
   color: #fff;
 }
 
-/* --- LEADERBOARD & ROLAGEM --- */
+/* --- LEADERBOARD --- */
 .leaderboard-section {
-  margin-top: 0; /* Removido margin top antigo */
   background: rgba(18, 18, 20, 0.85);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(0, 255, 204, 0.25);
   border-radius: 12px;
   padding: 16px;
   color: #fff;
-  flex: 1 1 380px; /* Ajusta largura de forma fluida */
+  flex: 1 1 380px;
   min-width: 320px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
 }
@@ -403,7 +402,6 @@ h1 {
   box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
 }
 
-/* Container de scroll fixo para o ranking */
 .leaderboard-table-wrapper {
   max-height: 200px;
   overflow-y: auto;
@@ -515,7 +513,7 @@ h1 {
 .overlay h2 { font-family: 'Orbitron', sans-serif; font-size: 3rem; margin-bottom: 20px; text-align: center; }
 .overlay-stats { display: flex; gap: 20px; margin: 20px 0 40px; flex-wrap: wrap; justify-content: center; }
 
-/* --- SISTEMA DE MODAIS CYBERPUNK --- */
+/* --- SISTEMA DE MODAIS --- */
 .cyber-modal-overlay,
 .bug-modal-overlay {
   position: fixed;
@@ -532,6 +530,7 @@ h1 {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  will-change: opacity;
   padding: 20px;
 }
 
@@ -553,6 +552,7 @@ h1 {
   position: relative;
   transform: translateY(20px);
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  will-change: transform;
 }
 
 .bug-modal-content {
