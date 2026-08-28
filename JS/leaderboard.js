@@ -181,7 +181,6 @@ async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
     ? MUSIC_LIBRARY[songKey].title
     : songKey;
 
-  // Header com os botões ajustados (usando classes CSS)
   const tabsHtml = `
     <div class="leaderboard-header">
       <div class="leaderboard-title">🏆 TOP PLACAR: ${escapeHtml(songTitle)}</div>
@@ -202,10 +201,7 @@ async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
     </div>
   `;
 
-  container.innerHTML = `
-    ${tabsHtml}
-    <div class="leaderboard-loading" style="padding: 10px; color: #888;">Carregando ranking...</div>
-  `;
+  container.innerHTML = `${tabsHtml}<div class="leaderboard-loading" style="padding: 10px; color: #888;">Carregando ranking...</div>`;
 
   const scores = await fetchScoresForSong(songKey, metric);
 
@@ -213,7 +209,7 @@ async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
     container.innerHTML = `
       ${tabsHtml}
       <div class="empty-board" style="padding: 15px; text-align: center; color: #888;">
-        Nenhuma pontuação registrada para esta música. Seja o primeiro!
+        Nenhuma pontuação registrada. Seja o primeiro!
       </div>
     `;
     return;
@@ -237,10 +233,10 @@ async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
     `;
   }).join("");
 
-  // Div wrapper envolvida na tabela ativando a barra de rolagem
+  // max-height de 180px força a rolagem aparecer mesmo com poucas linhas
   container.innerHTML = `
     ${tabsHtml}
-    <div class="leaderboard-table-wrapper">
+    <div class="leaderboard-table-wrapper" style="max-height: 180px; overflow-y: scroll; overflow-x: hidden;">
       <table class="leaderboard-table">
         <thead>
           <tr>
