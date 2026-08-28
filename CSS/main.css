@@ -257,6 +257,92 @@ h1 {
 }
 
 /* --- LEADERBOARD --- */
+/* Header do Leaderboard */
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.leaderboard-title {
+  color: #00ffcc;
+  font-weight: bold;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
+
+/* Botões Neon/Dark */
+.leaderboard-toggle-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.lb-btn {
+  background: #161b22;
+  color: #a3b3c2;
+  border: 1px solid #30363d;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.lb-btn:hover {
+  background: #21262d;
+  color: #ffffff;
+  border-color: #8b949e;
+}
+
+.lb-btn.active {
+  background: #00ffcc;
+  color: #0d1117;
+  border-color: #00ffcc;
+  box-shadow: 0 0 10px rgba(0, 255, 204, 0.4);
+}
+
+/* Scroll e Tabela */
+.leaderboard-table-wrapper {
+  max-height: 260px; /* Limita a altura para ativar o scroll */
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+}
+
+/* Customização da Barra de Scroll (WebKit) */
+.leaderboard-table-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.leaderboard-table-wrapper::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+
+.leaderboard-table-wrapper::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+.leaderboard-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #00ffcc;
+}
+
+/* Cabeçalho Fixo ao Rolar */
+.leaderboard-table thread th {
+  position: sticky;
+  top: 0;
+  background: #161b22;
+  z-index: 2;
+}
+
 .leaderboard-section {
   margin-top: 20px;
   background: rgba(18, 18, 20, 0.85);
