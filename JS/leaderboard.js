@@ -183,7 +183,7 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
 
 // 5. Renderiza o Ranking na tela com controles de alternância e container com Scroll
 async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
-  currentLeaderboardMetric = metric; // Atualiza a métrica global atual
+  currentLeaderboardMetric = metric;
   const container = createLeaderboardUI();
   if (!container) return;
 
@@ -191,22 +191,20 @@ async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
     ? MUSIC_LIBRARY[songKey].title
     : songKey;
 
-  // HTML dos botões de alternância (Tabs)
+  // Header com os botões ajustados (usando classes CSS)
   const tabsHtml = `
-    <div class="leaderboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <div class="leaderboard-title" style="font-weight: bold;">🏆 Top Placar: ${escapeHtml(songTitle)}</div>
-      <div class="leaderboard-toggle-buttons" style="display: flex; gap: 6px;">
+    <div class="leaderboard-header">
+      <div class="leaderboard-title">🏆 TOP PLACAR: ${escapeHtml(songTitle)}</div>
+      <div class="leaderboard-toggle-buttons">
         <button 
           onclick="changeLeaderboardMetric('${songKey}', 'score')" 
-          class="lb-btn ${metric === 'score' ? 'active' : ''}" 
-          style="padding: 4px 10px; cursor: pointer; border-radius: 4px; ${metric === 'score' ? 'font-weight: bold;' : ''}"
+          class="lb-btn ${metric === 'score' ? 'active' : ''}"
         >
           Pontos
         </button>
         <button 
           onclick="changeLeaderboardMetric('${songKey}', 'wpm')" 
-          class="lb-btn ${metric === 'wpm' ? 'active' : ''}" 
-          style="padding: 4px 10px; cursor: pointer; border-radius: 4px; ${metric === 'wpm' ? 'font-weight: bold;' : ''}"
+          class="lb-btn ${metric === 'wpm' ? 'active' : ''}"
         >
           WPM
         </button>
@@ -224,7 +222,9 @@ async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
   if (!scores || scores.length === 0) {
     container.innerHTML = `
       ${tabsHtml}
-      <div class="empty-board">Nenhuma pontuação registrada para esta música. Seja o primeiro!</div>
+      <div class="empty-board" style="padding: 15px; text-align: center; color: #888;">
+        Nenhuma pontuação registrada para esta música. Seja o primeiro!
+      </div>
     `;
     return;
   }
@@ -241,24 +241,24 @@ async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
         <td>#${index + 1}</td>
         <td><strong>${safePlayer}</strong></td>
         <td><span class="rank-badge rank-${safeRank}">${safeRank}</span></td>
-        <td style="${metric === 'wpm' ? 'font-weight: bold;' : ''}">${safeWpm} WPM</td>
-        <td style="${metric === 'score' ? 'font-weight: bold;' : ''}">${safeScore} pts</td>
+        <td style="${metric === 'wpm' ? 'color: #00ffcc; font-weight: bold;' : ''}">${safeWpm} WPM</td>
+        <td style="${metric === 'score' ? 'color: #00ffcc; font-weight: bold;' : ''}">${safeScore} pts</td>
       </tr>
     `;
   }).join("");
 
-  // Adicionada div com max-height e overflow-y: auto para rolagem interna
+  // Div wrapper envolvida na tabela ativando a barra de rolagem
   container.innerHTML = `
     ${tabsHtml}
-    <div class="leaderboard-table-wrapper" style="max-height: 250px; overflow-y: auto; overflow-x: hidden; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;">
-      <table class="leaderboard-table" style="width: 100%; border-collapse: collapse;">
-        <thead style="position: sticky; top: 0; background: #1a1a1a; z-index: 1;">
+    <div class="leaderboard-table-wrapper">
+      <table class="leaderboard-table">
+        <thead>
           <tr>
             <th>#</th>
-            <th>Jogador</th>
-            <th>Rank</th>
+            <th>JOGADOR</th>
+            <th>RANK</th>
             <th>WPM ${metric === 'wpm' ? '▼' : ''}</th>
-            <th>Pontos ${metric === 'score' ? '▼' : ''}</th>
+            <th>PONTOS ${metric === 'score' ? '▼' : ''}</th>
           </tr>
         </thead>
         <tbody>
