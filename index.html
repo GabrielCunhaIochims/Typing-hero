@@ -52,23 +52,53 @@
     <h1>TYPING HERO</h1>
     <p class="subtitle">Escolha o seu ritmo e digite com precisão</p>
     
-  <div class="song-selector-container">
-  <div class="selector-group-wrapper">
-    <div class="selector-group">
-      <span class="song-selector-label">Música / Tema:</span>
-      <select id="songSelect" class="song-select"></select>
-    </div>
-    
-    <div class="user-pb-card" id="userPbCard">
-      <div class="pb-title">⚡ SEU RECORDE (PB)</div>
-      <div class="pb-stats">
-        <span class="pb-item"><strong id="pbScore">0</strong> pts</span>
-        <span class="pb-divider">|</span>
-        <span class="pb-item"><strong id="pbWpm">0</strong> WPM</span>
-        <span class="pb-badge" id="pbRank">--</span>
+    <!-- CONTAINER PRINCIPAL DA SELEÇÃO E LEADERBOARD -->
+    <div class="song-selector-container">
+      <!-- LADO ESQUERDO: Seletor + Recorde Pessoal -->
+      <div class="selector-group-wrapper">
+        <div class="selector-group">
+          <span class="song-selector-label">Música / Tema:</span>
+          <select id="songSelect" class="song-select"></select>
+        </div>
+        
+        <div class="user-pb-card" id="userPbCard">
+          <div class="pb-title">⚡ SEU RECORDE (PB)</div>
+          <div class="pb-stats">
+            <span class="pb-item"><strong id="pbScore">0</strong> pts</span>
+            <span class="pb-divider">|</span>
+            <span class="pb-item"><strong id="pbWpm">0</strong> WPM</span>
+            <span class="pb-badge" id="pbRank">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LADO DIREITO: Painel do Leaderboard -->
+      <div class="leaderboard-section">
+        <div class="leaderboard-header">
+          <div class="leaderboard-title" id="leaderboardTitle">TOP PLACAR</div>
+          <div class="leaderboard-toggle-buttons">
+            <button class="lb-btn active" id="btnSortPoints">Pontos</button>
+            <button class="lb-btn" id="btnSortWpm">WPM</button>
+          </div>
+        </div>
+        <div class="leaderboard-table-wrapper">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>JOGADOR</th>
+                <th>RANK</th>
+                <th>WPM</th>
+                <th>PONTOS</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+              <!-- Conteúdo renderizado via JS -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
     
     <div class="hud">
       <div class="stat-box">
