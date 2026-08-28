@@ -37,31 +37,21 @@ async function fetchScoresForSong(songKey, metric = 'score') {
         .from("leaderboard")
         .select("*")
         .eq("song_key", songKey)
-        .order(metric, { ascending: false }) // Ordena dinamicamente pela métrica escolhida
-        .limit(20); // Aumentado limite para permitir a rolagem de mais jogadores
+        .order(metric, { ascending: false })
+        .limit(50); // <--- Aumentado para 50 resultados
 
-      if (!error && data) {
-        remoteScores = data;
-      } else if (error) {
-        console.warn("Aviso ao buscar scores no Supabase:", error.message);
-      }
+      if (!error && data) remoteScores = data;
     }
   } catch (e) {
     console.error("Erro na conexão com Supabase:", e);
   }
 
-  // Se o Supabase encontrou registros, exibe o ranking global
-  if (remoteScores && remoteScores.length > 0) {
-    return remoteScores;
-  }
+  if (remoteScores && remoteScores.length > 0) return remoteScores;
 
-  // Fallback: Busca do LocalStorage e ordena localmente
   const allScores = JSON.parse(localStorage.getItem("typing_game_leaderboards")) || {};
   const localScores = allScores[songKey] || [];
-  
-  return localScores.sort((a, b) => (b[metric] || 0) - (a[metric] || 0)).slice(0, 20);
+  return localScores.sort((a, b) => (b[metric] || 0) - (a[metric] || 0)).slice(0, 50);
 }
-
 // 4. Salva a pontuação (Atualiza se bater o recorde de PONTOS OU WPM)
 async function saveScoreForSong(songKey, newScore, rankName, wpm) {
   const parsedScore = Math.round(Number(newScore) || 0);
