@@ -165,6 +165,77 @@ let currentRankIndex = 0;
 let previousRankIndex = 0;
 let announcements = [];
 
+// Atualiza o mini card do usuário logado/local para a música selecionada
+async function updateUserPBDisplay(songKey) {
+  const scoreEl = document.getElementById("pbScore");
+  const wpmEl = document.getElementById("pbWpm");
+  const rankEl = document.getElementById("pbRank");
+
+  if (!scoreEl || !wpmEl || !rankEl) return;
+
+  let pbScore = 0;
+  let pbWpm = 0;
+  let pbRank = "--";
+
+  // Busca recorde do usuário no Supabase
+  if (typeof currentUser !== "undefined" && currentUser && typeof _supabase !== "undefined" && _supabase) {
+    try {
+      const { data } = await _supabase
+        .from("leaderboard")
+        .select("score, wpm, rank")
+        .eq("user_id", currentUser.id)
+        .eq("song_key", songKey)
+        .maybeSingle();
+
+      if (data) {
+        pbScore = data.score || 0;
+        pbWpm = data.wpm || 0;
+        pbRank = data.rank || "--";
+      }
+    } catch (e) {
+      console.warn("Aviso ao buscar PB no Supabase:", e);
+    }
+  } else {
+    // Fallback LocalStorage
+    const allScores = JSON.parse(localStorage.getItem("typing_game_leaderboards")) || {};
+    const localScores = allScores[songKey] || [];
+    const playerName = typeof currentUser !== "undefined" && currentUser 
+      ? currentUser.user_metadata?.display_name 
+      : null;
+
+    if (playerName) {
+      const userRecord = localScores.find(item => item.player === playerName);
+      if (userRecord) {
+        pbScore = userRecord.score || 0;
+        pbWpm = userRecord.wpm || 0;
+        pbRank = userRecord.rank || "--";
+      }
+    }
+  }
+
+  // Atualiza o card na interface
+  scoreEl.textContent = Number(pbScore).toLocaleString("pt-BR");
+  wpmEl.textContent = pbWpm;
+  rankEl.textContent = pbRank;
+}
+
+// Atualiza a inicialização do seletor
+document.addEventListener("DOMContentLoaded", () => {
+  const songSelect = document.getElementById("songSelect");
+
+  if (songSelect) {
+    if (songSelect.value) {
+      renderLeaderboard(songSelect.value, currentLeaderboardMetric);
+      updateUserPBDisplay(songSelect.value);
+    }
+
+    songSelect.addEventListener("change", (e) => {
+      renderLeaderboard(e.target.value, currentLeaderboardMetric);
+      updateUserPBDisplay(e.target.value);
+    });
+  }
+});
+
 // ==========================================
 // SISTEMA DE NOTIFICAÇÃO (TOAST CYBERPUNK)
 // ==========================================
