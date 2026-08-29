@@ -457,7 +457,116 @@ h1 {
   transform: translateY(-3px);
   color: #fff;
 }
+/* Overlay Escuro com Desfoque */
+.cyber-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 7, 15, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
 
+.cyber-modal-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Caixa do Modal */
+.cyber-modal {
+  background: #0d0f17;
+  border: 1px solid #ff0055;
+  box-shadow: 0 0 25px rgba(ff, 0, 85, 0.35), inset 0 0 15px rgba(ff, 0, 85, 0.1);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 440px;
+  padding: 24px;
+  text-align: center;
+  transform: translateY(-20px);
+  transition: transform 0.2s ease;
+}
+
+.cyber-modal-overlay.active .cyber-modal {
+  transform: translateY(0);
+}
+
+/* Header */
+.cyber-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.cyber-modal-title {
+  color: #ff0055;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+/* Texto */
+.cyber-modal-body {
+  color: #c0c6d4;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.highlight-pink { color: #ff0055; }
+.highlight-cyan { color: #00f0ff; }
+
+/* Botões */
+.cyber-modal-footer {
+  display: flex;
+  gap: 12px;
+}
+
+.cyber-modal-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid #4a5268;
+  color: #a0a7b8;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border-color: #7a849e;
+}
+
+.btn-confirm {
+  background: #ff0055;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(ff, 0, 85, 0.4);
+}
+
+.btn-confirm:hover {
+  background: #e0004c;
+  box-shadow: 0 0 18px rgba(ff, 0, 85, 0.7);
+}
 /* --- BOTÃO FLUTUANTE REPORTAR BUG --- */
 #bugReportBtn,
 .bug-btn-fixed {
