@@ -579,16 +579,40 @@ if (game) {
     if (gameActive && input && !input.disabled) input.focus();
   });
 }
+function askGuestConfirmation() {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("guestModal");
+    const confirmBtn = document.getElementById("modalConfirmBtn");
+    const cancelBtn = document.getElementById("modalCancelBtn");
 
-function startGame() {
-  // ⚠️ AVISO PARA USUÁRIOS NÃO LOGADOS
+    modal.classList.add("active");
+
+    const handleConfirm = () => {
+      cleanup();
+      resolve(true);
+    };
+
+    const handleCancel = () => {
+      cleanup();
+      resolve(false);
+    };
+
+    const cleanup = () => {
+      modal.classList.remove("active");
+      confirmBtn.removeEventListener("click", handleConfirm);
+      cancelBtn.removeEventListener("click", handleCancel);
+    };
+
+    confirmBtn.addEventListener("click", handleConfirm);
+    cancelBtn.addEventListener("click", handleCancel);
+  });
+}
+
+async function startGame() {
+  // ⚠️ Verificação com Modal Cyberpunk Customizado
   if (typeof currentUser === "undefined" || !currentUser) {
-    const aceitouContinuar = confirm(
-      "⚠️ ATENÇÃO: Seus pontos não serão salvos no Leaderboard porque você não está logado!\n\nDeseja continuar mesmo assim?"
-    );
-    
-    // Se o usuário clicar em "Cancelar", cancela o início do jogo
-    if (!aceitouContinuar) return;
+    const aceitouContinuar = await askGuestConfirmation();
+    if (!aceitouContinuar) return; // Cancela se o jogador clicar em CANCELAR
   }
 
   if (typeof initAudio === "function") initAudio();
