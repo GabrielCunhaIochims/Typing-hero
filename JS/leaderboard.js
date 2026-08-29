@@ -2,15 +2,18 @@
 let currentLeaderboardMetric = 'score';
 
 // 1. Cria ou obtém o container do Leaderboard na DOM
+// 1. Cria ou obtém o container do Leaderboard na DOM
 function createLeaderboardUI() {
   let boardContainer = document.getElementById("leaderboardContainer");
-  const songSelect = document.getElementById("songSelect");
+  const mainContainer = document.querySelector(".song-selector-container");
 
-  if (!boardContainer && songSelect) {
+  if (!boardContainer && mainContainer) {
     boardContainer = document.createElement("div");
     boardContainer.id = "leaderboardContainer";
     boardContainer.className = "leaderboard-section";
-    songSelect.parentNode.insertBefore(boardContainer, songSelect.nextSibling);
+    
+    // Anexa o leaderboard como segundo filho do container principal (ao lado da coluna esquerda)
+    mainContainer.appendChild(boardContainer);
   }
 
   return boardContainer;
