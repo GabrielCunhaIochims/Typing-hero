@@ -138,6 +138,9 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
     } catch (err) {
       console.error("Erro inesperado ao salvar no Supabase:", err);
     }
+    
+  await renderLeaderboard(songKey, currentLeaderboardMetric);
+  await updateUserPBDisplay(songKey); 
   }
 
   // B. Atualiza LocalStorage e a Tabela na Tela
