@@ -7,7 +7,7 @@ const MUSIC_LIBRARY = {
     sectionName: "Infernal Descent",
     tracks: {
       "limbo": {
-        title: "Limbo Echoes (Dark Synthwave / Cyber-Rock)",
+        title: "Limbo Echoes",
         url: "musicas/Limbo Echoes.mp3",
         multiplier: 1.0,
         phrases: [
@@ -23,8 +23,8 @@ const MUSIC_LIBRARY = {
         ]
       },
       "lust": {
-        title: "Vortex of Desires (Electro-Industrial / Synth-Metal) WIP",
-        url: "https://seu-link-de-audio.mp3",
+        title: "Winds of Francesca WIP",
+        url: "musicas/Winds of Francesca.mp3",
         multiplier: 1.15,
         phrases: [
           "as"
@@ -36,7 +36,7 @@ const MUSIC_LIBRARY = {
     sectionName: "Cybernetic Protocol",
     tracks: {
       "hellfire": {
-        title: "Hellfire Overdrive (Cyberpunk/Metal)",
+        title: "Hellfire Overdrive",
         url: "musicas/Hellfire Overdrive.mp3",
         multiplier: 1.5,
         phrases: [
@@ -58,7 +58,7 @@ const MUSIC_LIBRARY = {
         ]
       },
       "code_master": {
-        title: "Bitrush_Overdrive (Synthwave / Tech)",
+        title: "Bitrush_Overdrive",
         url: "musicas/Bitrush Overdrive.mp3",
         multiplier: 1.25,
         phrases: [
