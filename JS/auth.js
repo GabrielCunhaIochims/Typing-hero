@@ -129,6 +129,13 @@ async function checkUserSession() {
           window.location.reload();
         };
       }
+
+      // ⚡ Atualiza o card de Recorde Pessoal (PB) para a música selecionada assim que o usuário é autenticado
+      const songSelect = document.getElementById('songSelect');
+      if (songSelect && songSelect.value && typeof updateUserPBDisplay === 'function') {
+        updateUserPBDisplay(songSelect.value);
+      }
+
     } else {
       setGuestUI(userInfo, authActionBtn);
     }
@@ -145,6 +152,12 @@ function setGuestUI(userInfo, authActionBtn) {
     authActionBtn.innerHTML = '<span>Entrar / Cadastrar</span>';
     authActionBtn.href = 'auth.html';
     authActionBtn.onclick = null;
+  }
+
+  // ⚡ Se estiver como convidado, zera ou busca o PB local
+  const songSelect = document.getElementById('songSelect');
+  if (songSelect && songSelect.value && typeof updateUserPBDisplay === 'function') {
+    updateUserPBDisplay(songSelect.value);
   }
 }
 
