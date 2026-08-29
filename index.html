@@ -54,28 +54,55 @@
     
     <!-- CONTAINER PRINCIPAL DA SELEÇÃO E LEADERBOARD -->
     <div class="song-selector-container">
-  <!-- Grupo Esquerdo: Seletor + Recorde embaixo -->
-  <div class="selector-group-wrapper">
-    <div class="selector-group">
-      <span class="song-selector-label">MÚSICA / TEMA:</span>
-      <select class="song-select">
-        <!-- suas opções de músicas -->
-      </select>
-    </div>
+      <!-- Grupo Esquerdo: Seletor + Recorde embaixo -->
+      <div class="selector-group-wrapper">
+        <div class="selector-group">
+          <span class="song-selector-label">MÚSICA / TEMA:</span>
+          <select class="song-select" id="songSelect">
+            <!-- Opções de músicas inseridas via JS ou estaticamente -->
+            <option value="hellfire">Hellfire Overdrive (Cyberpunk/Metal) (x1.5)</option>
+          </select>
+        </div>
 
-    <div class="user-pb-card">
-      <div class="pb-title">⚡ SEU RECORDE (PB)</div>
-      <div class="pb-stats">
-        <span class="pb-item"><strong>62.571</strong> pts</span>
-        <span class="pb-divider">|</span>
-        <span class="pb-item"><strong>48</strong> WPM</span>
-        <span class="pb-badge">SS</span>
+        <div class="user-pb-card">
+          <div class="pb-title">⚡ SEU RECORDE (PB)</div>
+          <div class="pb-stats">
+            <span class="pb-item"><strong>62.571</strong> pts</span>
+            <span class="pb-divider">|</span>
+            <span class="pb-item"><strong>48</strong> WPM</span>
+            <span class="pb-badge">SS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grupo Direito: Leaderboard -->
+      <div class="leaderboard-section">
+        <div class="leaderboard-header">
+          <span class="leaderboard-title">🏆 TOP PLACAR</span>
+          <div class="leaderboard-toggle-buttons">
+            <button class="lb-btn" id="btnPontos">Pontos</button>
+            <button class="lb-btn active" id="btnWpm">WPM</button>
+          </div>
+        </div>
+        <div class="leaderboard-table-wrapper">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>JOGADOR</th>
+                <th>RANK</th>
+                <th>WPM</th>
+                <th>PONTOS</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+              <!-- Conteúdo carregado via Javascript -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
 
-   
-    
     <div class="hud">
       <div class="stat-box">
         <div class="stat-label">Pontuação</div>
