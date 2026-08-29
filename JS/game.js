@@ -581,6 +581,16 @@ if (game) {
 }
 
 function startGame() {
+  // ⚠️ AVISO PARA USUÁRIOS NÃO LOGADOS
+  if (typeof currentUser === "undefined" || !currentUser) {
+    const aceitouContinuar = confirm(
+      "⚠️ ATENÇÃO: Seus pontos não serão salvos no Leaderboard porque você não está logado!\n\nDeseja continuar mesmo assim?"
+    );
+    
+    // Se o usuário clicar em "Cancelar", cancela o início do jogo
+    if (!aceitouContinuar) return;
+  }
+
   if (typeof initAudio === "function") initAudio();
   if (typeof playGameMusic === "function") playGameMusic();
 
@@ -632,7 +642,6 @@ function startGame() {
     if (timeLeft <= 0) endGame();
   }, 100);
 }
-
 function animateFinalScore(targetScore) {
   const el = document.getElementById("finalScore");
   if (!el) return;
