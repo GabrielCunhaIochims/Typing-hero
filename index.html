@@ -10,22 +10,27 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <!-- Top Bar com Login e Botão de Patch Notes -->
+    <!-- Top Bar com Login, Configurações e Patch Notes -->
     <div class="top-auth-bar">
         <div class="user-status">
-          <span class="user-icon">👤</span>
-          <span id="userInfo">Carregando...</span>
+            <span class="user-icon">👤</span>
+            <span id="userInfo">Carregando...</span>
         </div>
 
         <div style="display: flex; gap: 10px; align-items: center;">
-          <!-- Botão Patch Notes estilizado no topo -->
-          <button id="newsModalBtn" class="cyber-nav-btn">
-            PATCH NOTES
-          </button>
+            <!-- Botão de Configurações / Acessibilidade -->
+            <button id="settingsModalBtn" class="cyber-nav-btn">
+                ⚙️ CONFIG
+            </button>
 
-          <a id="authActionBtn" href="auth.html" class="auth-btn">
-            <span>Entrar / Cadastrar</span>
-          </a>
+            <!-- Botão Patch Notes estilizado no topo -->
+            <button id="newsModalBtn" class="cyber-nav-btn">
+                PATCH NOTES
+            </button>
+
+            <a id="authActionBtn" href="auth.html" class="auth-btn">
+                <span>Entrar / Cadastrar</span>
+            </a>
         </div>
     </div>
     
@@ -42,206 +47,257 @@
     
     <!-- Componente de Rank Up no Canto Superior Direito -->
     <div class="rank-up-overlay" id="rankUpOverlay">
-      <div class="rank-up-title">RANK UP!</div>
-      <div class="rank-badge-container" id="rankBadgeContainer">
-        <div class="rank-up-badge" id="rankUpBadge">A</div>
-        <div class="rank-up-shockwave" id="rankUpShockwave"></div>
-      </div>
+        <div class="rank-up-title">RANK UP!</div>
+        <div class="rank-badge-container" id="rankBadgeContainer">
+            <div class="rank-up-badge" id="rankUpBadge">A</div>
+            <div class="rank-up-shockwave" id="rankUpShockwave"></div>
+        </div>
     </div>
     
     <h1>TYPING HERO</h1>
     <p class="subtitle">Escolha o seu ritmo e digite com precisão</p>
     
     <!-- CONTAINER PRINCIPAL DA SELEÇÃO E LEADERBOARD -->
-  <div class="song-selector-container">
-  
-  <!-- Grupo Esquerdo: Seletor + Recorde Pessoal -->
-  <div class="selector-group-wrapper">
-    <div class="selector-group">
-      <span class="song-selector-label">MÚSICA / TEMA:</span>
-      <select class="song-select" id="songSelect">
-        <option value="hellfire">Hellfire Overdrive (Cyberpunk/Metal) (x1.5)</option>
-      </select>
+    <div class="song-selector-container">
+        <!-- Grupo Esquerdo: Seletor + Recorde Pessoal -->
+        <div class="selector-group-wrapper">
+            <div class="selector-group">
+                <span class="song-selector-label">MÚSICA / TEMA:</span>
+                <select class="song-select" id="songSelect">
+                    <option value="hellfire">Hellfire Overdrive (Cyberpunk/Metal) (x1.5)</option>
+                    <option value="francesca">Ventos de Francesca (Cyber Psytrance)</option>
+                </select>
+            </div>
+
+            <div class="user-pb-card">
+                <div class="pb-title">⚡ SEU RECORDE (PB)</div>
+                <div class="pb-stats">
+                    <span class="pb-item"><strong id="pbScore">0</strong> pts</span>
+                    <span class="pb-divider">|</span>
+                    <span class="pb-item"><strong id="pbWpm">0</strong> WPM</span>
+                    <span class="pb-badge" id="pbRank">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- O JS (createLeaderboardUI) injetará a div .leaderboard-section aqui dinamicamente -->
     </div>
 
-    <div class="user-pb-card">
-      <div class="pb-title">⚡ SEU RECORDE (PB)</div>
-      <div class="pb-stats">
-    <span class="pb-item"><strong id="pbScore">0</strong> pts</span>
-    <span class="pb-divider">|</span>
-    <span class="pb-item"><strong id="pbWpm">0</strong> WPM</span>
-    <span class="pb-badge" id="pbRank">--</span>
-  </div>
-</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- O JavaScript (createLeaderboardUI) vai injetar a div .leaderboard-section aqui automaticamente -->
-
-</div>
-
+    <!-- HUD do Jogo -->
     <div class="hud">
-      <div class="stat-box">
-        <div class="stat-label">Pontuação</div>
-        <div class="stat-value" id="scoreValue">0</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Hype Rank</div>
-        <div class="stat-value" id="hypeValue">D</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Combo</div>
-        <div class="stat-value" id="comboValue">0x</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">WPM</div>
-        <div class="stat-value" id="wpmValue">0</div>
-      </div>
+        <div class="stat-box">
+            <div class="stat-label">Pontuação</div>
+            <div class="stat-value" id="scoreValue">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Hype Rank</div>
+            <div class="stat-value" id="hypeValue">D</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Combo</div>
+            <div class="stat-value" id="comboValue">0x</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">WPM</div>
+            <div class="stat-value" id="wpmValue">0</div>
+        </div>
     </div>
     
     <div class="hype-bar-container">
-      <div class="hype-bar" id="hypeBar"></div>
+        <div class="hype-bar" id="hypeBar"></div>
     </div>
     
     <div id="game"></div>
     
     <div class="timer-bar">
-      <div class="timer-fill" id="timerFill"></div>
+        <div class="timer-fill" id="timerFill"></div>
     </div>
     
     <div id="inputArea">
-      <div class="input-wrapper">
-        <input type="text" id="playerInput" placeholder="Clique em PLAY para começar..." disabled autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text">
-      </div>
-      <button class="btn btn-primary" id="playBtn">PLAY</button>
+        <div class="input-wrapper">
+            <input type="text" id="playerInput" placeholder="Clique em PLAY para começar..." disabled autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text">
+        </div>
+        <button class="btn btn-primary" id="playBtn">PLAY</button>
     </div>
     
     <!-- Game Over Overlay -->
     <div class="overlay" id="gameOverOverlay">
-      <h2>GAME OVER</h2>
-      <div class="overlay-stats">
-        <div class="stat-box">
-          <div class="stat-label">Pontuação Final</div>
-          <div class="stat-value" id="finalScore">0</div>
+        <h2>GAME OVER</h2>
+        <div class="overlay-stats">
+            <div class="stat-box">
+                <div class="stat-label">Pontuação Final</div>
+                <div class="stat-value" id="finalScore">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Maior Rank</div>
+                <div class="stat-value" id="finalRank" style="color: #ff0066;">D</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Máx WPM</div>
+                <div class="stat-value" id="finalWpm">0</div>
+            </div>
         </div>
-        <div class="stat-box">
-          <div class="stat-label">Maior Rank</div>
-          <div class="stat-value" id="finalRank" style="color: #ff0066;">D</div>
+        <div class="btn-group">
+            <button class="btn btn-primary" id="restartBtn">JOGAR NOVAMENTE</button>
+            <button class="btn btn-secondary" id="menuBtn">MENU PRINCIPAL</button>
         </div>
-        <div class="stat-box">
-          <div class="stat-label">Máx WPM</div>
-          <div class="stat-value" id="finalWpm">0</div>
-        </div>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-primary" id="restartBtn">JOGAR NOVAMENTE</button>
-        <button class="btn btn-secondary" id="menuBtn">MENU PRINCIPAL</button>
-      </div>
     </div>
 
-    <!-- Botão de Reportar Bug no Canto Inferior Esquerdo -->
+    <!-- Botão de Reportar Bug -->
     <button id="bugReportBtn" class="bug-btn">Reportar Bug</button>
 
     <!-- Modal de Reportar Bug -->
     <div id="bugReportOverlay" class="bug-modal-overlay">
-      <div class="bug-modal-content">
-        <button id="closeBugModalBtn" class="bug-close-btn">&times;</button>
-        <h2>Reportar um Problema</h2>
-        <p>Encontrou um erro ou falha no jogo? Avise-nos abaixo!</p>
-        
-        <form id="bugReportForm">
-          <div class="form-group">
-            <label for="bugCategory">Categoria:</label>
-            <select id="bugCategory" required>
-              <option value="audio">Áudio / Música</option>
-              <option value="typing">Digitação / Texto</option>
-              <option value="visual">Interface / Visual</option>
-              <option value="other">Outro</option>
-            </select>
-          </div>
+        <div class="bug-modal-content">
+            <button id="closeBugModalBtn" class="bug-close-btn">&times;</button>
+            <h2>Reportar um Problema</h2>
+            <p>Encontrou um erro ou falha no jogo? Avise-nos abaixo!</p>
+            
+            <form id="bugReportForm">
+                <div class="form-group">
+                    <label for="bugCategory">Categoria:</label>
+                    <select id="bugCategory" required>
+                        <option value="audio">Áudio / Música</option>
+                        <option value="typing">Digitação / Texto</option>
+                        <option value="visual">Interface / Visual</option>
+                        <option value="other">Outro</option>
+                    </select>
+                </div>
 
-          <div class="form-group">
-            <label for="bugDescription">Descrição do Bug:</label>
-            <textarea id="bugDescription" rows="4" placeholder="Descreva o que aconteceu..." required></textarea>
-          </div>
+                <div class="form-group">
+                    <label for="bugDescription">Descrição do Bug:</label>
+                    <textarea id="bugDescription" rows="4" placeholder="Descreva o que aconteceu..." required></textarea>
+                </div>
 
-          <button type="submit" class="submit-bug-btn">Enviar Relatório</button>
-        </form>
-        
-        <div id="bugFeedbackMsg" class="bug-feedback-msg"></div>
-      </div>
+                <button type="submit" class="submit-bug-btn">Enviar Relatório</button>
+            </form>
+            
+            <div id="bugFeedbackMsg" class="bug-feedback-msg"></div>
+        </div>
     </div>
 
-    <!-- MODAL DE SENHA DO CRIADOR (Oculto) -->
+    <!-- MODAL DE CONFIGURAÇÕES VISUAIS & ACESSIBILIDADE -->
+    <div id="settingsOverlay" class="cyber-modal-overlay">
+        <div class="cyber-modal-card">
+            <div class="cyber-modal-header">
+                <h2>⚙️ CONFIGURAÇÕES VISUAIS</h2>
+                <button id="closeSettingsModalBtn" class="close-btn">&times;</button>
+            </div>
+
+            <div class="cyber-form">
+                <div class="settings-group">
+                    <label class="setting-item">
+                        <span>Fonte Monospace Limpa</span>
+                        <input type="checkbox" id="cfgCleanFont">
+                    </label>
+
+                    <label class="setting-item">
+                        <span>Desativar Piscada do Cursor</span>
+                        <input type="checkbox" id="cfgDisableBlink">
+                    </label>
+
+                    <label class="setting-item">
+                        <span>Desativar Brilho/Glow de Texto</span>
+                        <input type="checkbox" id="cfgDisableGlow">
+                    </label>
+
+                    <label class="setting-item">
+                        <span>Efeitos de Tremor (Screen Shake)</span>
+                        <input type="checkbox" id="cfgScreenShake" checked>
+                    </label>
+                </div>
+
+                <div class="settings-group accessibility-box">
+                    <h4>👓 ACESSIBILIDADE (MIOPIA / VISÃO)</h4>
+                    
+                    <div class="setting-item">
+                        <span>Tamanho do Texto do Jogo</span>
+                        <div class="font-size-controls">
+                            <button id="btnDecreaseFont" class="cyber-btn-sm">A-</button>
+                            <button id="btnResetFont" class="cyber-btn-sm">100%</button>
+                            <button id="btnIncreaseFont" class="cyber-btn-sm">A+</button>
+                        </div>
+                    </div>
+
+                    <label class="setting-item">
+                        <span>Modo Alto Contraste (Sem Efeito Halo)</span>
+                        <input type="checkbox" id="cfgHighContrast">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE SENHA DO CRIADOR -->
     <div id="passwordOverlay" class="cyber-modal-overlay">
-      <div class="cyber-modal-card secret-card">
-        <div class="cyber-modal-header">
-          <h2>ACESSO RESTRITO</h2>
-          <button id="closePasswordModalBtn" class="close-btn">&times;</button>
+        <div class="cyber-modal-card secret-card">
+            <div class="cyber-modal-header">
+                <h2>ACESSO RESTRITO</h2>
+                <button id="closePasswordModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="cyber-form">
+                <div class="form-group">
+                    <label>SENHA DO CRIADOR</label>
+                    <input type="password" id="adminPasswordInput" class="cyber-input" placeholder="••••••••" autocomplete="off" />
+                </div>
+                <button id="submitPasswordBtn" class="cyber-btn-primary pink">AUTENTICAR</button>
+            </div>
         </div>
-        <div class="cyber-form">
-          <div class="form-group">
-            <label>SENHA DO CRIADOR</label>
-            <input type="password" id="adminPasswordInput" class="cyber-input" placeholder="••••••••" autocomplete="off" />
-          </div>
-          <button id="submitPasswordBtn" class="cyber-btn-primary pink">AUTENTICAR</button>
-        </div>
-      </div>
     </div>
 
-    <!-- MODAL DE UPDATE LOGS / PATCH NOTES DA COMUNIDADE -->
+    <!-- MODAL DE UPDATE LOGS / PATCH NOTES -->
     <div id="newsOverlay" class="cyber-modal-overlay">
-      <div class="cyber-modal-card">
-        <div class="cyber-modal-header">
-          <h2>📢 UPDATE LOGS & CORREÇÕES</h2>
-          <button id="closeNewsModalBtn" class="close-btn">&times;</button>
+        <div class="cyber-modal-card">
+            <div class="cyber-modal-header">
+                <h2>📢 UPDATE LOGS & CORREÇÕES</h2>
+                <button id="closeNewsModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div id="newsList" class="news-list-container">
+                <!-- Conteúdo populado dinamicamente via JS -->
+            </div>
         </div>
-        <div id="newsList" class="news-list-container">
-          <!-- Conteúdo populado dinamicamente via JS -->
-        </div>
-      </div>
     </div>
 
-    <!-- MODAL DO PAINEL DO CRIADOR (Para enviar avisos) -->
+    <!-- MODAL DO PAINEL DO CRIADOR -->
     <div id="adminOverlay" class="cyber-modal-overlay">
-      <div class="cyber-modal-card secret-card">
-        <div class="cyber-modal-header">
-          <h2>⚙️ PAINEL DO CRIADOR</h2>
-          <button id="closeAdminModalBtn" class="close-btn">&times;</button>
+        <div class="cyber-modal-card secret-card">
+            <div class="cyber-modal-header">
+                <h2>⚙️ PAINEL DO CRIADOR</h2>
+                <button id="closeAdminModalBtn" class="close-btn">&times;</button>
+            </div>
+
+            <form id="adminPostForm" class="cyber-form">
+                <div class="form-group">
+                    <label for="postTitle">TÍTULO DA ATUALIZAÇÃO / BUG FIX</label>
+                    <input type="text" id="postTitle" class="cyber-input" placeholder="Ex: Bug dos combos resolvido!" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="postContent">MENSAGEM PARA OS JOGADORES</label>
+                    <textarea id="postContent" class="cyber-input cyber-textarea" placeholder="Descreva o que foi adicionado ou corrigido..." required></textarea>
+                </div>
+
+                <button type="submit" class="cyber-btn-primary pink">PUBLICAR MENSAGEM</button>
+            </form>
         </div>
+    </div>
 
-        <form id="adminPostForm" class="cyber-form">
-          <div class="form-group">
-            <label for="postTitle">TÍTULO DA ATUALIZAÇÃO / BUG FIX</label>
-            <input type="text" id="postTitle" class="cyber-input" placeholder="Ex: Bug dos combos resolvido!" required />
-          </div>
-
-          <div class="form-group">
-            <label for="postContent">MENSAGEM PARA OS JOGADORES</label>
-            <textarea id="postContent" class="cyber-input cyber-textarea" placeholder="Descreva o que foi adicionado ou corrigido..." required></textarea>
-          </div>
-
-          <button type="submit" class="cyber-btn-primary pink">PUBLICAR MENSAGEM</button>
-        </form>
-      </div>
+    <!-- Modal Cyberpunk de Aviso de Convidado -->
+    <div id="guestModal" class="cyber-modal-overlay">
+        <div class="cyber-modal">
+            <div class="cyber-modal-header">
+                <span class="warning-icon">⚠️</span>
+                <span class="cyber-modal-title">AVISO DE AUTENTICAÇÃO</span>
+            </div>
+            <div class="cyber-modal-body">
+                Seus pontos <strong class="highlight-pink">não serão salvos</strong> no Leaderboard porque você está jogando como <strong class="highlight-cyan">Convidado</strong>.
+            </div>
+            <div class="cyber-modal-footer">
+                <button id="modalCancelBtn" class="cyber-modal-btn btn-cancel">CANCELAR</button>
+                <button id="modalConfirmBtn" class="cyber-modal-btn btn-confirm">CONTINUAR ASSIM</button>
+            </div>
+        </div>
     </div>
-    <!-- Modal Cyberpunk de Aviso -->
-<div id="guestModal" class="cyber-modal-overlay">
-  <div class="cyber-modal">
-    <div class="cyber-modal-header">
-      <span class="warning-icon">⚠️</span>
-      <span class="cyber-modal-title">AVISO DE AUTENTICAÇÃO</span>
-    </div>
-    <div class="cyber-modal-body">
-      Seus pontos <strong class="highlight-pink">não serão salvos</strong> no Leaderboard porque você está jogando como <strong class="highlight-cyan">Convidado</strong>.
-    </div>
-    <div class="cyber-modal-footer">
-      <button id="modalCancelBtn" class="cyber-modal-btn btn-cancel">CANCELAR</button>
-      <button id="modalConfirmBtn" class="cyber-modal-btn btn-confirm">CONTINUAR ASSIM</button>
-    </div>
-  </div>
-</div>
 
     <!-- Vercel Web Analytics -->
     <script>
