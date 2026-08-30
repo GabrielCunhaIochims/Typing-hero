@@ -1,4 +1,28 @@
 /* ==========================================
+   CORREÇÃO DO FLUXO DE TEXTO E ESPAÇAMENTO (#game)
+   ========================================== */
+
+#game {
+  /* Alinha os caracteres e palavras de forma fluida */
+  display: block !important; 
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.char {
+  display: inline-block;
+  min-width: unset !important; /* Remove largura mínima forçada */
+  padding: 0 1px !important;    /* Ajusta espaçamento interno */
+  margin: 0 !important;
+}
+
+/* Tratamento para espaços entre palavras não quebrarem o layout */
+.char.space {
+  width: 0.5em; /* Define uma largura ajustada e visível para a tecla de espaço */
+}
+
+/* ==========================================
    AJUSTE DE LAYOUT: CONTROLE DE FONTE
    ========================================== */
 
