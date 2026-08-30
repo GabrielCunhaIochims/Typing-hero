@@ -874,6 +874,51 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+// IMPEDE QUEBRAS DE FRASES E POPULA O CACHEDCHARSPANS
+function renderTextToType(text) {
+  const gameElement = document.getElementById('game');
+  if (!gameElement) return;
+
+  gameElement.innerHTML = '';
+  cachedCharSpans = []; // Limpa o cache anterior
+
+  const words = text.split(' ');
+
+  words.forEach((word, wordIndex) => {
+    // Container da Palavra (impede que a palavra quebre no meio)
+    const wordSpan = document.createElement('span');
+    wordSpan.style.display = 'inline-block';
+    wordSpan.style.whiteSpace = 'nowrap';
+
+    word.split('').forEach((char) => {
+      const charSpan = document.createElement('span');
+      charSpan.classList.add('char', 'pending');
+      charSpan.textContent = char;
+      
+      wordSpan.appendChild(charSpan);
+      cachedCharSpans.push(charSpan); // Mapeia a letra na ordem exata da frase
+    });
+
+    gameElement.appendChild(wordSpan);
+
+    // Adiciona o caractere de Espaço
+    if (wordIndex < words.length - 1) {
+      const spaceSpan = document.createElement('span');
+      spaceSpan.classList.add('char', 'pending', 'space');
+      spaceSpan.innerHTML = '&nbsp;';
+      
+      gameElement.appendChild(spaceSpan);
+      cachedCharSpans.push(spaceSpan); // Mapeia o espaço na ordem exata da frase
+    }
+  });
+
+  // Marca a primeira letra como 'current' ao carregar
+  if (cachedCharSpans.length > 0) {
+    cachedCharSpans[0].classList.remove('pending');
+    cachedCharSpans[0].classList.add('current');
+  }
+}
+
 if (input) {
   input.addEventListener("keydown", (e) => {
     if (!gameActive) return;
@@ -962,6 +1007,7 @@ if (input) {
       }
     }
 
+    // Atualização visual dos caracteres no DOM
     for (let i = 0; i < text.length; i++) {
       const charSpan = cachedCharSpans[i];
       if (!charSpan) continue;
@@ -987,39 +1033,6 @@ if (input) {
   });
 
   input.addEventListener("paste", (e) => e.preventDefault());
-}
-//IMPEDE FRASES QUEBRADAS
-function renderTextToType(text) {
-  const gameElement = document.getElementById('game');
-  gameElement.innerHTML = '';
-
-  // Divide o texto por palavras, mantendo o controle de caracteres
-  const words = text.split(' ');
-
-  words.forEach((word, wordIndex) => {
-    // Cria um container para cada palavra
-    const wordSpan = document.createElement('span');
-    wordSpan.style.display = 'inline-block';
-    wordSpan.style.whiteSpace = 'nowrap';
-
-    // Insere cada letra da palavra
-    word.split('').forEach((char) => {
-      const charSpan = document.createElement('span');
-      charSpan.classList.add('char', 'pending');
-      charSpan.textContent = char;
-      wordSpan.appendChild(charSpan);
-    });
-
-    gameElement.appendChild(wordSpan);
-
-    // Adiciona o espaço entre palavras (exceto na última palavra)
-    if (wordIndex < words.length - 1) {
-      const spaceSpan = document.createElement('span');
-      spaceSpan.classList.add('char', 'pending', 'space');
-      spaceSpan.innerHTML = '&nbsp;';
-      gameElement.appendChild(spaceSpan);
-    }
-  });
 }
 // ==========================================
 // REPORT DE BUGS & DISCORD WEBHOOK
