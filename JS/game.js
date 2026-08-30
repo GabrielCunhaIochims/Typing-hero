@@ -714,80 +714,88 @@ if (game) {
 // REGRA STACK: BLOQUEIA AVANÇO SE ERRAR A LETRA
 // ==========================================
 if (input) {
-  input.addEventListener("keydown", (e) => {
+  input.addEventListener("input", (e) => {
     if (!gameActive) return;
 
-    // Permite teclas de controle (Backspace, Tab, setas, etc)
-    if (e.key.length > 1) return;
-
-    const typedValue = input.value;
-    const expectedChar = text[typedValue.length];
-
-    // Se a tecla pressionada não for EXATAMENTE a próxima letra da frase
-    if (e.key !== expectedChar) {
-      e.preventDefault(); // Impede o caractere de entrar no input
-
-      // Efeito visual de erro imediato
-      input.classList.add("error");
-      if (cachedCharSpans[typedValue.length]) {
-        cachedCharSpans[typedValue.length].classList.add("wrong");
-        setTimeout(() => {
-          if (cachedCharSpans[typedValue.length]) {
-            cachedCharSpans[typedValue.length].classList.remove("wrong");
-          }
-        }, 200);
-      }
-
-      // Perda de combo/hype por tentar a letra errada
-      combo = 0;
-      if (typeof updateStats === "function") updateStats();
-      return;
+    // Impede o input de estourar o tamanho da frase
+    if (input.value.length > text.length) {
+      input.value = input.value.slice(0, text.length);
     }
-
-    input.classList.remove("error");
-  });
-
-  input.addEventListener("input", () => {
-    if (!gameActive) return;
 
     const typedValue = input.value;
     const targetText = text;
+    let hasError = false;
 
-    // Atualiza as cores dos spans na tela
+    // Obtém as coordenadas do input para os popups visuais
+    const rect = input.getBoundingClientRect();
+    const popupX = rect.left + rect.width / 2;
+    const popupY = rect.top;
+
+    // Verifica se a última tecla pressionada foi um erro para aplicar a penalidade
+    const lastIndex = typedValue.length - 1;
+    if (lastIndex >= 0) {
+      const isCorrectChar = typedValue[lastIndex] === targetText[lastIndex];
+
+      if (!isCorrectChar && e.inputType !== "deleteContentBackward") {
+        // --- PENALIDADE POR ERRO ---
+        combo = 0;
+        timeLeft = Math.max(0, timeLeft - 2); // Subtrai 2 segundos
+        showTimePopup(popupX, popupY, -2, false);
+        input.classList.add("error");
+      } else if (isCorrectChar && e.inputType !== "deleteContentBackward") {
+        // --- BÔNUS POR CARACTERE CORRETO ---
+        const charPoints = 10;
+        score += charPoints;
+        timeLeft = Math.min(maxTime, timeLeft + 0.3); // Adiciona +0.3s
+        showTimePopup(popupX, popupY, "+0.3", true);
+      }
+    }
+
+    // Renderização visual dos spans (Verde para acerto, Vermelho para erro)
     cachedCharSpans.forEach((span, idx) => {
       span.classList.remove("current");
 
       if (idx < typedValue.length) {
-        span.className = span.classList.contains("space") ? "char correct space" : "char correct";
+        if (typedValue[idx] === targetText[idx]) {
+          span.className = span.classList.contains("space") ? "char correct space" : "char correct";
+        } else {
+          span.className = span.classList.contains("space") ? "char wrong space" : "char wrong";
+          hasError = true;
+        }
       } else {
         span.className = span.classList.contains("space") ? "char pending space" : "char pending";
       }
     });
 
-    // Posiciona o cursor na próxima letra esperada
+    // Se não há erros na sequência atual, remove a borda de erro do input
+    if (!hasError) {
+      input.classList.remove("error");
+    }
+
+    // Posiciona a classe 'current' no cursor
     if (typedValue.length < cachedCharSpans.length) {
       cachedCharSpans[typedValue.length].classList.remove("pending");
       cachedCharSpans[typedValue.length].classList.add("current");
     }
 
-    // Se completou a frase inteira
+    updateStats();
+
+    // Conclusão perfeita da frase
     if (typedValue === targetText) {
-      const points = targetText.length * 10;
-      score += points;
+      const completionBonus = targetText.length * 5;
+      score += completionBonus;
       combo++;
       hypePoints = Math.min(100, hypePoints + 15);
       charCount += targetText.length;
 
-      const rect = input.getBoundingClientRect();
-      showScorePopup(rect.left + rect.width / 2, rect.top, points);
-      spawnParticles(rect.left + rect.width / 2, rect.top, "#00ffcc", 8);
+      showScorePopup(popupX, popupY, completionBonus);
+      spawnParticles(popupX, popupY, "#00ffcc", 10);
 
       updateStats();
-      nextText();
+      nextText(); // Limpa o input e avança
     }
   });
 }
-
 function askGuestConfirmation() {
   return new Promise((resolve) => {
     const modal = document.getElementById("guestModal");
