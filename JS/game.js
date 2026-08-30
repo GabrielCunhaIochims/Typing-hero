@@ -531,13 +531,21 @@ function renderText() {
   game.innerHTML = "";
   cachedCharSpans = [];
 
-  // Divide o texto mantendo todos os caracteres e espaços exatamente na mesma sequência
+  // Container principal flexível para centralizar e alinhar perfeitamente as frases
+  const container = document.createElement("div");
+  container.style.display = "flex";
+  container.style.flexWrap = "wrap";
+  container.style.justifyContent = "center";
+  container.style.alignItems = "center";
+  container.style.gap = "0.35em"; // Mantém o espaçamento natural e uniforme entre as palavras
+  container.style.width = "100%";
+
   const words = text.split(" ");
 
   words.forEach((word, wordIndex) => {
-    // Encapsula cada palavra para evitar quebra de linha no meio de palavras
+    // Agrupa os caracteres da palavra para que ela não quebre no meio
     const wordSpan = document.createElement("span");
-    wordSpan.style.display = "inline-block";
+    wordSpan.style.display = "inline-flex";
     wordSpan.style.whiteSpace = "nowrap";
 
     word.split("").forEach((char) => {
@@ -546,23 +554,26 @@ function renderText() {
       charSpan.textContent = char;
 
       wordSpan.appendChild(charSpan);
-      cachedCharSpans.push(charSpan); // Garante a ordem exata no array do jogo
+      cachedCharSpans.push(charSpan);
     });
 
-    game.appendChild(wordSpan);
+    container.appendChild(wordSpan);
 
-    // Adiciona o espaço com a classe correta sem quebrar a posição do cursor
+    // Mantém o caractere de espaço no array original para validação, som e pontuação
     if (wordIndex < words.length - 1) {
       const spaceSpan = document.createElement("span");
       spaceSpan.className = "char pending space";
+      spaceSpan.style.display = "none"; // O gap do flexbox assume o visual, mas o span fica registrado no fluxo do jogo
       spaceSpan.innerHTML = "&nbsp;";
 
-      game.appendChild(spaceSpan);
-      cachedCharSpans.push(spaceSpan); // Garante a validação de acerto/erro nos espaços
+      container.appendChild(spaceSpan);
+      cachedCharSpans.push(spaceSpan);
     }
   });
 
-  // Atribui o cursor inicial à primeira posição do array
+  game.appendChild(container);
+
+  // Define o cursor na primeira letra
   if (cachedCharSpans.length > 0) {
     cachedCharSpans[0].classList.remove("pending");
     cachedCharSpans[0].classList.add("current");
