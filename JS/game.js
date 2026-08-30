@@ -27,7 +27,7 @@ const MUSIC_LIBRARY = {
         url: "musicas/Winds of Francesca.mp3",
         multiplier: 1.15,
         phrases: [
-          "as"
+          "a"
         ]
       }
     }
