@@ -710,50 +710,67 @@ if (game) {
 // ==========================================
 // MONITORAMENTO DA DIGITAÇÃO DO JOGADOR
 // ==========================================
+// ==========================================
+// REGRA STACK: BLOQUEIA AVANÇO SE ERRAR A LETRA
+// ==========================================
 if (input) {
+  input.addEventListener("keydown", (e) => {
+    if (!gameActive) return;
+
+    // Permite teclas de controle (Backspace, Tab, setas, etc)
+    if (e.key.length > 1) return;
+
+    const typedValue = input.value;
+    const expectedChar = text[typedValue.length];
+
+    // Se a tecla pressionada não for EXATAMENTE a próxima letra da frase
+    if (e.key !== expectedChar) {
+      e.preventDefault(); // Impede o caractere de entrar no input
+
+      // Efeito visual de erro imediato
+      input.classList.add("error");
+      if (cachedCharSpans[typedValue.length]) {
+        cachedCharSpans[typedValue.length].classList.add("wrong");
+        setTimeout(() => {
+          if (cachedCharSpans[typedValue.length]) {
+            cachedCharSpans[typedValue.length].classList.remove("wrong");
+          }
+        }, 200);
+      }
+
+      // Perda de combo/hype por tentar a letra errada
+      combo = 0;
+      if (typeof updateStats === "function") updateStats();
+      return;
+    }
+
+    input.classList.remove("error");
+  });
+
   input.addEventListener("input", () => {
     if (!gameActive) return;
 
+    const typedValue = input.value;
     const targetText = text;
 
-    // 1. Impede que o jogador digite além do tamanho máximo da frase atual
-    if (input.value.length > targetText.length) {
-      input.value = input.value.slice(0, targetText.length);
-    }
-
-    const typedValue = input.value;
-    let isMatch = true;
-
-    // 2. Compara cada caractere até o tamanho atual digitado
+    // Atualiza as cores dos spans na tela
     cachedCharSpans.forEach((span, idx) => {
       span.classList.remove("current");
 
       if (idx < typedValue.length) {
-        if (typedValue[idx] === targetText[idx]) {
-          span.className = span.classList.contains("space") ? "char correct space" : "char correct";
-        } else {
-          span.className = span.classList.contains("space") ? "char wrong space" : "char wrong";
-          isMatch = false;
-        }
+        span.className = span.classList.contains("space") ? "char correct space" : "char correct";
       } else {
         span.className = span.classList.contains("space") ? "char pending space" : "char pending";
       }
     });
 
-    // 3. Posiciona a classe 'current' na letra ativa
+    // Posiciona o cursor na próxima letra esperada
     if (typedValue.length < cachedCharSpans.length) {
       cachedCharSpans[typedValue.length].classList.remove("pending");
       cachedCharSpans[typedValue.length].classList.add("current");
     }
 
-    // 4. Marca visualmente erro se houver caracteres incorretos no input
-    if (!isMatch) {
-      input.classList.add("error");
-    } else {
-      input.classList.remove("error");
-    }
-
-    // 5. Validação de frase concluída com sucesso
+    // Se completou a frase inteira
     if (typedValue === targetText) {
       const points = targetText.length * 10;
       score += points;
@@ -766,7 +783,7 @@ if (input) {
       spawnParticles(rect.left + rect.width / 2, rect.top, "#00ffcc", 8);
 
       updateStats();
-      nextText(); // Limpa o input.value e renderiza a nova frase
+      nextText();
     }
   });
 }
