@@ -219,29 +219,45 @@ async function updateUserPBDisplay(songKey) {
   rankEl.textContent = pbRank;
 }
 
-// --- CONFIGURAÇÕES DE ACESSIBILIDADE E VISUAL ---
+// --- ELEMENTOS DO MODAL DE CONFIGURAÇÕES ---
+const settingsModal = document.getElementById('settingsOverlay');
+const settingsBtn = document.getElementById('settingsModalBtn');
+const closeSettingsBtn = document.getElementById('closeSettingsModalBtn');
+
+// Inputs de Acessibilidade e Visual
 const cfgCleanFont = document.getElementById('cfgCleanFont');
 const cfgDisableBlink = document.getElementById('cfgDisableBlink');
 const cfgDisableGlow = document.getElementById('cfgDisableGlow');
 const cfgScreenShake = document.getElementById('cfgScreenShake');
 const cfgHighContrast = document.getElementById('cfgHighContrast');
 
-// Função para aplicar todas as preferências salvas no carregamento
+// --- ABERTURA E FECHAMENTO DO MODAL ---
+settingsBtn?.addEventListener('click', () => settingsModal?.classList.add('active'));
+closeSettingsBtn?.addEventListener('click', () => settingsModal?.classList.remove('active'));
+
+// Fechar modal ao clicar fora da caixa do card
+settingsModal?.addEventListener('click', (e) => {
+  if (e.target === settingsModal) {
+    settingsModal.classList.remove('active');
+  }
+});
+
+// --- GERENCIAMENTO DE PREFERÊNCIAS VISUAIS ---
 function applyPreferences() {
   const cleanFont = localStorage.getItem('cfgCleanFont') === 'true';
   const disableBlink = localStorage.getItem('cfgDisableBlink') === 'true';
   const disableGlow = localStorage.getItem('cfgDisableGlow') === 'true';
-  const screenShake = localStorage.getItem('cfgScreenShake') !== 'false';
+  const screenShake = localStorage.getItem('cfgScreenShake') !== 'false'; // Padrão: true
   const highContrast = localStorage.getItem('cfgHighContrast') === 'true';
 
-  // Aplica nas classes do body/document
+  // Aplica/Remove classes no body para estilização global CSS
   document.body.classList.toggle('clean-font', cleanFont);
   document.body.classList.toggle('disable-blink', disableBlink);
   document.body.classList.toggle('disable-glow', disableGlow);
   document.body.classList.toggle('no-shake', !screenShake);
   document.body.classList.toggle('high-contrast', highContrast);
 
-  // Sincroniza os estados dos inputs do modal
+  // Atualiza os checkboxes do HTML para bater com os valores salvas
   if (cfgCleanFont) cfgCleanFont.checked = cleanFont;
   if (cfgDisableBlink) cfgDisableBlink.checked = disableBlink;
   if (cfgDisableGlow) cfgDisableGlow.checked = disableGlow;
@@ -249,7 +265,7 @@ function applyPreferences() {
   if (cfgHighContrast) cfgHighContrast.checked = highContrast;
 }
 
-// Event Listeners para salvar alterações em tempo real
+// Event Listeners dos Toggles de Configurações
 cfgCleanFont?.addEventListener('change', (e) => {
   localStorage.setItem('cfgCleanFont', e.target.checked);
   applyPreferences();
@@ -275,15 +291,27 @@ cfgHighContrast?.addEventListener('change', (e) => {
   applyPreferences();
 });
 
-// Executa na inicialização da página
-document.addEventListener('DOMContentLoaded', () => {
-  applyPreferences();
-});
+// --- ACESSIBILIDADE: CONTROLE DO TAMANHO DA FONTE ---
+let currentFontSize = parseFloat(localStorage.getItem('typingFontSize')) || 1.25;
 
-// Atualiza a inicialização do seletor
+function updateFontSize(size) {
+  currentFontSize = Math.min(Math.max(size, 1.0), 2.2); // Trava entre 1.0rem e 2.2rem
+  document.documentElement.style.setProperty('--typing-font-size', `${currentFontSize}rem`);
+  localStorage.setItem('typingFontSize', currentFontSize);
+}
+
+document.getElementById('btnIncreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize + 0.2));
+document.getElementById('btnDecreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize - 0.2));
+document.getElementById('btnResetFont')?.addEventListener('click', () => updateFontSize(1.25));
+
+// --- INICIALIZAÇÃO ÚNICA NO DOMCONTENTLOADED ---
 document.addEventListener("DOMContentLoaded", () => {
-  const songSelect = document.getElementById("songSelect");
+  // 1. Aplica preferências salvas do usuário
+  applyPreferences();
+  updateFontSize(currentFontSize);
 
+  // 2. Inicializa o seletor de músicas e leaderboard
+  const songSelect = document.getElementById("songSelect");
   if (songSelect) {
     if (songSelect.value) {
       renderLeaderboard(songSelect.value, currentLeaderboardMetric);
@@ -296,30 +324,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
-// Abertura/Fechamento do Modal de Configurações
-const settingsModal = document.getElementById('settingsOverlay');
-const settingsBtn = document.getElementById('settingsModalBtn');
-const closeSettingsBtn = document.getElementById('closeSettingsModalBtn');
-
-settingsBtn?.addEventListener('click', () => settingsModal?.classList.add('active'));
-closeSettingsBtn?.addEventListener('click', () => settingsModal?.classList.remove('active'));
-
-// Controle de Tamanho de Fonte (Acessibilidade)
-let currentFontSize = parseFloat(localStorage.getItem('typingFontSize')) || 1.25;
-
-function updateFontSize(size) {
-  currentFontSize = Math.min(Math.max(size, 1.0), 2.2);
-  document.documentElement.style.setProperty('--typing-font-size', `${currentFontSize}rem`);
-  localStorage.setItem('typingFontSize', currentFontSize);
-}
-
-document.getElementById('btnIncreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize + 0.2));
-document.getElementById('btnDecreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize - 0.2));
-document.getElementById('btnResetFont')?.addEventListener('click', () => updateFontSize(1.25));
-
-// Aplicar preferência inicial ao carregar a página
-updateFontSize(currentFontSize);
 
 // ==========================================
 // SISTEMA DE NOTIFICAÇÃO (TOAST CYBERPUNK)
