@@ -531,9 +531,11 @@ function renderText() {
   game.innerHTML = "";
   cachedCharSpans = [];
 
+  // Divide o texto mantendo todos os caracteres e espaços exatamente na mesma sequência
   const words = text.split(" ");
 
   words.forEach((word, wordIndex) => {
+    // Encapsula cada palavra para evitar quebra de linha no meio de palavras
     const wordSpan = document.createElement("span");
     wordSpan.style.display = "inline-block";
     wordSpan.style.whiteSpace = "nowrap";
@@ -542,23 +544,25 @@ function renderText() {
       const charSpan = document.createElement("span");
       charSpan.className = "char pending";
       charSpan.textContent = char;
-      
+
       wordSpan.appendChild(charSpan);
-      cachedCharSpans.push(charSpan);
+      cachedCharSpans.push(charSpan); // Garante a ordem exata no array do jogo
     });
 
     game.appendChild(wordSpan);
 
+    // Adiciona o espaço com a classe correta sem quebrar a posição do cursor
     if (wordIndex < words.length - 1) {
       const spaceSpan = document.createElement("span");
       spaceSpan.className = "char pending space";
       spaceSpan.innerHTML = "&nbsp;";
-      
+
       game.appendChild(spaceSpan);
-      cachedCharSpans.push(spaceSpan);
+      cachedCharSpans.push(spaceSpan); // Garante a validação de acerto/erro nos espaços
     }
   });
 
+  // Atribui o cursor inicial à primeira posição do array
   if (cachedCharSpans.length > 0) {
     cachedCharSpans[0].classList.remove("pending");
     cachedCharSpans[0].classList.add("current");
