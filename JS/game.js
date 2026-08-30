@@ -291,7 +291,7 @@ cfgHighContrast?.addEventListener('change', (e) => {
   applyPreferences();
 });
 
-// --- ACESSIBILIDADE: CONTROLE DO TAMANHO DA FONTE ---
+
 // --- ACESSIBILIDADE: CONTROLE DO TAMANHO DA FONTE ---
 let currentFontSize = parseFloat(localStorage.getItem('typingFontSize')) || 1.25;
 const baseFontSize = 1.25; // 1.25rem representa o tamanho padrão de 100%
@@ -707,95 +707,6 @@ if (game) {
   });
 }
 
-// ==========================================
-// MONITORAMENTO DA DIGITAÇÃO DO JOGADOR
-// ==========================================
-// ==========================================
-// REGRA STACK: BLOQUEIA AVANÇO SE ERRAR A LETRA
-// ==========================================
-if (input) {
-  input.addEventListener("input", (e) => {
-    if (!gameActive) return;
-
-    // Impede o input de estourar o tamanho da frase
-    if (input.value.length > text.length) {
-      input.value = input.value.slice(0, text.length);
-    }
-
-    const typedValue = input.value;
-    const targetText = text;
-    let hasError = false;
-
-    // Obtém as coordenadas do input para os popups visuais
-    const rect = input.getBoundingClientRect();
-    const popupX = rect.left + rect.width / 2;
-    const popupY = rect.top;
-
-    // Verifica se a última tecla pressionada foi um erro para aplicar a penalidade
-    const lastIndex = typedValue.length - 1;
-    if (lastIndex >= 0) {
-      const isCorrectChar = typedValue[lastIndex] === targetText[lastIndex];
-
-      if (!isCorrectChar && e.inputType !== "deleteContentBackward") {
-        // --- PENALIDADE POR ERRO ---
-        combo = 0;
-        timeLeft = Math.max(0, timeLeft - 2); // Subtrai 2 segundos
-        showTimePopup(popupX, popupY, -2, false);
-        input.classList.add("error");
-      } else if (isCorrectChar && e.inputType !== "deleteContentBackward") {
-        // --- BÔNUS POR CARACTERE CORRETO ---
-        const charPoints = 10;
-        score += charPoints;
-        timeLeft = Math.min(maxTime, timeLeft + 0.3); // Adiciona +0.3s
-        showTimePopup(popupX, popupY, "+0.3", true);
-      }
-    }
-
-    // Renderização visual dos spans (Verde para acerto, Vermelho para erro)
-    cachedCharSpans.forEach((span, idx) => {
-      span.classList.remove("current");
-
-      if (idx < typedValue.length) {
-        if (typedValue[idx] === targetText[idx]) {
-          span.className = span.classList.contains("space") ? "char correct space" : "char correct";
-        } else {
-          span.className = span.classList.contains("space") ? "char wrong space" : "char wrong";
-          hasError = true;
-        }
-      } else {
-        span.className = span.classList.contains("space") ? "char pending space" : "char pending";
-      }
-    });
-
-    // Se não há erros na sequência atual, remove a borda de erro do input
-    if (!hasError) {
-      input.classList.remove("error");
-    }
-
-    // Posiciona a classe 'current' no cursor
-    if (typedValue.length < cachedCharSpans.length) {
-      cachedCharSpans[typedValue.length].classList.remove("pending");
-      cachedCharSpans[typedValue.length].classList.add("current");
-    }
-
-    updateStats();
-
-    // Conclusão perfeita da frase
-    if (typedValue === targetText) {
-      const completionBonus = targetText.length * 5;
-      score += completionBonus;
-      combo++;
-      hypePoints = Math.min(100, hypePoints + 15);
-      charCount += targetText.length;
-
-      showScorePopup(popupX, popupY, completionBonus);
-      spawnParticles(popupX, popupY, "#00ffcc", 10);
-
-      updateStats();
-      nextText(); // Limpa o input e avança
-    }
-  });
-}
 function askGuestConfirmation() {
   return new Promise((resolve) => {
     const modal = document.getElementById("guestModal");
