@@ -714,11 +714,17 @@ if (input) {
   input.addEventListener("input", () => {
     if (!gameActive) return;
 
-    const typedValue = input.value;
     const targetText = text;
+
+    // 1. Impede que o jogador digite além do tamanho máximo da frase atual
+    if (input.value.length > targetText.length) {
+      input.value = input.value.slice(0, targetText.length);
+    }
+
+    const typedValue = input.value;
     let isMatch = true;
 
-    // Atualiza o estado visual de cada caractere na tela
+    // 2. Compara cada caractere até o tamanho atual digitado
     cachedCharSpans.forEach((span, idx) => {
       span.classList.remove("current");
 
@@ -734,20 +740,20 @@ if (input) {
       }
     });
 
-    // Posiciona a classe 'current' na letra correspondente ao cursor
+    // 3. Posiciona a classe 'current' na letra ativa
     if (typedValue.length < cachedCharSpans.length) {
       cachedCharSpans[typedValue.length].classList.remove("pending");
       cachedCharSpans[typedValue.length].classList.add("current");
     }
 
-    // Sinaliza erro visual no campo de entrada caso exista caractere incorreto
+    // 4. Marca visualmente erro se houver caracteres incorretos no input
     if (!isMatch) {
       input.classList.add("error");
     } else {
       input.classList.remove("error");
     }
 
-    // Valida se a frase foi completamente digitada de forma correta
+    // 5. Validação de frase concluída com sucesso
     if (typedValue === targetText) {
       const points = targetText.length * 10;
       score += points;
@@ -760,7 +766,7 @@ if (input) {
       spawnParticles(rect.left + rect.width / 2, rect.top, "#00ffcc", 8);
 
       updateStats();
-      nextText(); // Limpa o input.value e carrega a nova frase
+      nextText(); // Limpa o input.value e renderiza a nova frase
     }
   });
 }
