@@ -293,16 +293,27 @@ cfgHighContrast?.addEventListener('change', (e) => {
 
 // --- ACESSIBILIDADE: CONTROLE DO TAMANHO DA FONTE ---
 let currentFontSize = parseFloat(localStorage.getItem('typingFontSize')) || 1.25;
+const baseFontSize = 1.25; // Define 1.25rem como o padrão (100%)
 
 function updateFontSize(size) {
-  currentFontSize = Math.min(Math.max(size, 1.0), 2.2); // Trava entre 1.0rem e 2.2rem
+  // Limita o tamanho entre 1.0rem e 2.2rem
+  currentFontSize = Math.min(Math.max(size, 1.0), 2.2);
+  
+  // Aplica a variável CSS
   document.documentElement.style.setProperty('--typing-font-size', `${currentFontSize}rem`);
   localStorage.setItem('typingFontSize', currentFontSize);
+
+  // Atualiza o texto visual da porcentagem no modal (Ex: 80%, 100%, 120%)
+  const fontIndicator = document.getElementById('fontSizeIndicator');
+  if (fontIndicator) {
+    const percentage = Math.round((currentFontSize / baseFontSize) * 100);
+    fontIndicator.textContent = `${percentage}%`;
+  }
 }
 
 document.getElementById('btnIncreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize + 0.2));
 document.getElementById('btnDecreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize - 0.2));
-document.getElementById('btnResetFont')?.addEventListener('click', () => updateFontSize(1.25));
+document.getElementById('btnResetFont')?.addEventListener('click', () => updateFontSize(baseFontSize));
 
 // --- INICIALIZAÇÃO ÚNICA NO DOMCONTENTLOADED ---
 document.addEventListener("DOMContentLoaded", () => {
