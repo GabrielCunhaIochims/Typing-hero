@@ -236,6 +236,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// Abertura/Fechamento do Modal de Configurações
+const settingsModal = document.getElementById('settingsOverlay');
+const settingsBtn = document.getElementById('settingsModalBtn');
+const closeSettingsBtn = document.getElementById('closeSettingsModalBtn');
+
+settingsBtn?.addEventListener('click', () => settingsModal?.classList.add('active'));
+closeSettingsBtn?.addEventListener('click', () => settingsModal?.classList.remove('active'));
+
+// Controle de Tamanho de Fonte (Acessibilidade)
+let currentFontSize = parseFloat(localStorage.getItem('typingFontSize')) || 1.25;
+
+function updateFontSize(size) {
+  currentFontSize = Math.min(Math.max(size, 1.0), 2.2);
+  document.documentElement.style.setProperty('--typing-font-size', `${currentFontSize}rem`);
+  localStorage.setItem('typingFontSize', currentFontSize);
+}
+
+document.getElementById('btnIncreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize + 0.2));
+document.getElementById('btnDecreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize - 0.2));
+document.getElementById('btnResetFont')?.addEventListener('click', () => updateFontSize(1.25));
+
+// Aplicar preferência inicial ao carregar a página
+updateFontSize(currentFontSize);
+
 // ==========================================
 // SISTEMA DE NOTIFICAÇÃO (TOAST CYBERPUNK)
 // ==========================================
