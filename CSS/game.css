@@ -1,4 +1,46 @@
 /* ==========================================
+   AJUSTE DE LAYOUT: CONTROLE DE FONTE
+   ========================================== */
+
+/* Linha contendo o rótulo e os botões */
+.accessibility-option-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+/* Group dos botões A- / 100% / A+ */
+.font-size-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Estilização uniformizada para os botões numéricos/tamanho */
+.font-size-controls .cyber-btn-sm {
+  min-width: 45px;
+  height: 32px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Garante tamanho padrão e destaque para o botão de porcentagem central */
+#btnResetFont {
+  min-width: 60px;
+  border-color: rgba(0, 255, 136, 0.4);
+  color: #00ff88;
+}
+
+
+/* ==========================================
    CONFIGURAÇÕES DE ACESSIBILIDADE & VISUAL
    ========================================== */
 
@@ -76,7 +118,6 @@ body.high-contrast #playerInput {
   color: #ffffff !important;
   font-weight: bold;
 }
-
 
 /* ==========================================
    ANIMAÇÕES, FLASHES E TREMORES ORIGINAIS
