@@ -707,6 +707,64 @@ if (game) {
   });
 }
 
+// ==========================================
+// MONITORAMENTO DA DIGITAÇÃO DO JOGADOR
+// ==========================================
+if (input) {
+  input.addEventListener("input", () => {
+    if (!gameActive) return;
+
+    const typedValue = input.value;
+    const targetText = text;
+    let isMatch = true;
+
+    // Atualiza o estado visual de cada caractere na tela
+    cachedCharSpans.forEach((span, idx) => {
+      span.classList.remove("current");
+
+      if (idx < typedValue.length) {
+        if (typedValue[idx] === targetText[idx]) {
+          span.className = span.classList.contains("space") ? "char correct space" : "char correct";
+        } else {
+          span.className = span.classList.contains("space") ? "char wrong space" : "char wrong";
+          isMatch = false;
+        }
+      } else {
+        span.className = span.classList.contains("space") ? "char pending space" : "char pending";
+      }
+    });
+
+    // Posiciona a classe 'current' na letra correspondente ao cursor
+    if (typedValue.length < cachedCharSpans.length) {
+      cachedCharSpans[typedValue.length].classList.remove("pending");
+      cachedCharSpans[typedValue.length].classList.add("current");
+    }
+
+    // Sinaliza erro visual no campo de entrada caso exista caractere incorreto
+    if (!isMatch) {
+      input.classList.add("error");
+    } else {
+      input.classList.remove("error");
+    }
+
+    // Valida se a frase foi completamente digitada de forma correta
+    if (typedValue === targetText) {
+      const points = targetText.length * 10;
+      score += points;
+      combo++;
+      hypePoints = Math.min(100, hypePoints + 15);
+      charCount += targetText.length;
+
+      const rect = input.getBoundingClientRect();
+      showScorePopup(rect.left + rect.width / 2, rect.top, points);
+      spawnParticles(rect.left + rect.width / 2, rect.top, "#00ffcc", 8);
+
+      updateStats();
+      nextText(); // Limpa o input.value e carrega a nova frase
+    }
+  });
+}
+
 function askGuestConfirmation() {
   return new Promise((resolve) => {
     const modal = document.getElementById("guestModal");
