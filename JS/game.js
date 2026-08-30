@@ -85,51 +85,67 @@ const MUSIC_LIBRARY = {
 };
 
 const ADMIN_PASSWORD_HASH = "0fc38699678759bfc9d851f132fca6824f6eb0c98f6122acdfaa83c9df3a44fc";
+// ==========================================
+// CONFIGURAÇÕES, ESTADOS E CONSTANTES
+// ==========================================
 const RANKS = [
-  { name: "D", min: 0, color: "#888888" },
-  { name: "C", min: 10, color: "#00ccff" },
-  { name: "B", min: 25, color: "#00ff88" },
-  { name: "A", min: 45, color: "#ffcc00" },
-  { name: "S", min: 70, color: "#ff9900" },
-  { name: "SS", min: 100, color: "#ff0066" },
-  { name: "SSS", min: 135, color: "#ff00cc" },
-  { name: "HERO", min: 180, color: "#ffffff" }
+  { name: "D", minScore: 0, color: "#888888" },
+  { name: "C", minScore: 1000, color: "#4caf50" },
+  { name: "B", minScore: 3000, color: "#2196f3" },
+  { name: "A", minScore: 6000, color: "#9c27b0" },
+  { name: "S", minScore: 10000, color: "#ff9800" },
+  { name: "SS", minScore: 15000, color: "#e91e63" },
+  { name: "SSS", minScore: 22000, color: "#f44336" }
 ];
 
-// ==========================================
-// ELEMENTOS DO DOM & ESTADO GLOBAL
-// ==========================================
+const ADMIN_PASSWORD_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"; // Exemplo SHA-256
 
-const songSelect = document.getElementById("songSelect");
-const screenFlash = document.getElementById("screenFlash");
+let text = "Typing Hero é um jogo de digitação dinâmico focado em precisão e agilidade.";
+let gameActive = false;
+let timerInterval = null;
+let timeLeft = 60;
+let maxTime = 60;
+
+let score = 0;
+let combo = 0;
+let maxCombo = 0;
+let hypePoints = 0;
+let charCount = 0;
+let maxWpm = 0;
+let previousRankIndex = 0;
+let currentRankIndex = 0;
+let highestRankIndex = 0;
+
+let cachedCharSpans = [];
+let currentSongKey = "default";
+let announcements = [];
+
+// Seletores do DOM
 const game = document.getElementById("game");
-const scoreValue = document.getElementById("scoreValue");
-const hypeValue = document.getElementById("hypeValue");
-const comboValue = document.getElementById("comboValue");
-const wpmValue = document.getElementById("wpmValue");
-const hypeBar = document.getElementById("hypeBar");
-const input = document.getElementById("playerInput");
+const input = document.getElementById("input");
 const playBtn = document.getElementById("playBtn");
-const timerFill = document.getElementById("timerFill");
-const overlay = document.getElementById("gameOverOverlay");
 const restartBtn = document.getElementById("restartBtn");
 const menuBtn = document.getElementById("menuBtn");
 const quitBtn = document.getElementById("quitBtn");
+const songSelect = document.getElementById("songSelect");
 
-const rankUpOverlay = document.getElementById("rankUpOverlay");
-const rankUpBadge = document.getElementById("rankUpBadge");
-const rankBadgeContainer = document.getElementById("rankBadgeContainer");
-const rankUpShockwave = document.getElementById("rankUpShockwave");
+const scoreValue = document.getElementById("scoreValue");
+const comboValue = document.getElementById("comboValue");
+const wpmValue = document.getElementById("wpmValue");
+const rankValue = document.getElementById("rankValue");
+const timerFill = document.getElementById("timerFill");
+const overlay = document.getElementById("overlay");
 
+// Modais e Forms
 const bugReportBtn = document.getElementById("bugReportBtn");
 const bugReportOverlay = document.getElementById("bugReportOverlay");
 const closeBugModalBtn = document.getElementById("closeBugModalBtn");
 const bugReportForm = document.getElementById("bugReportForm");
 const bugFeedbackMsg = document.getElementById("bugFeedbackMsg");
 
+const newsModalBtn = document.getElementById("newsModalBtn");
 const newsOverlay = document.getElementById("newsOverlay");
 const newsList = document.getElementById("newsList");
-const newsModalBtn = document.getElementById("newsModalBtn");
 const closeNewsModalBtn = document.getElementById("closeNewsModalBtn");
 
 const passwordOverlay = document.getElementById("passwordOverlay");
@@ -139,414 +155,96 @@ const closePasswordModalBtn = document.getElementById("closePasswordModalBtn");
 
 const adminOverlay = document.getElementById("adminOverlay");
 const adminPostForm = document.getElementById("adminPostForm");
-const postTitleInput = document.getElementById("postTitle");
-const postContentInput = document.getElementById("postContent");
+const postTitleInput = document.getElementById("postTitleInput");
+const postContentInput = document.getElementById("postContentInput");
 const closeAdminModalBtn = document.getElementById("closeAdminModalBtn");
 
-// Variáveis do Estado do Jogo
-let cachedCharSpans = [];
-let currentSongKey = songSelect ? songSelect.value : "";
-let score = 0;
-let hypePoints = 0;
-let combo = 0;
-const MAX_COMBO = 8;
-let text = "";
-let gameActive = false;
-let startTime = null;
-let charCount = 0;
-let maxWpm = 0;
-let timerInterval = null;
-let timeLeft = 60;
-let maxTime = 60;
-let correctCharsCount = 0;
-let isSRankActive = false;
-let highestRankIndex = 0;
-let currentRankIndex = 0;
-let previousRankIndex = 0;
-let announcements = [];
+// ==========================================
+// EFEITOS VISUAIS E ANIMAÇÕES (FLOATING TEXT)
+// ==========================================
 
-// Atualiza o mini card do usuário logado/local para a música selecionada
-async function updateUserPBDisplay(songKey) {
-  const scoreEl = document.getElementById("pbScore");
-  const wpmEl = document.getElementById("pbWpm");
-  const rankEl = document.getElementById("pbRank");
+function showFloatingText(strText, color, isError = false) {
+  if (!game) return;
+  const floatEl = document.createElement("div");
+  floatEl.className = `floating-text ${isError ? "error" : ""}`;
+  floatEl.textContent = strText;
+  floatEl.style.color = color;
 
-  if (!scoreEl || !wpmEl || !rankEl) return;
+  // Posição levemente aleatória em volta do centro
+  const randomX = (Math.random() - 0.5) * 60;
+  floatEl.style.transform = `translate(${randomX}px, 0px)`;
 
-  let pbScore = 0;
-  let pbWpm = 0;
-  let pbRank = "--";
+  game.appendChild(floatEl);
+  setTimeout(() => floatEl.remove(), 800);
+}
 
-  // Busca recorde do usuário no Supabase
-  if (typeof currentUser !== "undefined" && currentUser && typeof _supabase !== "undefined" && _supabase) {
-    try {
-      const { data } = await _supabase
-        .from("leaderboard")
-        .select("score, wpm, rank")
-        .eq("user_id", currentUser.id)
-        .eq("song_key", songKey)
-        .maybeSingle();
-
-      if (data) {
-        pbScore = data.score || 0;
-        pbWpm = data.wpm || 0;
-        pbRank = data.rank || "--";
-      }
-    } catch (e) {
-      console.warn("Aviso ao buscar PB no Supabase:", e);
-    }
+function triggerSRankEffects(active) {
+  if (active) {
+    document.body.classList.add("s-rank-active");
   } else {
-    // Fallback LocalStorage
-    const allScores = JSON.parse(localStorage.getItem("typing_game_leaderboards")) || {};
-    const localScores = allScores[songKey] || [];
-    const playerName = typeof currentUser !== "undefined" && currentUser 
-      ? currentUser.user_metadata?.display_name 
-      : null;
-
-    if (playerName) {
-      const userRecord = localScores.find(item => item.player === playerName);
-      if (userRecord) {
-        pbScore = userRecord.score || 0;
-        pbWpm = userRecord.wpm || 0;
-        pbRank = userRecord.rank || "--";
-      }
-    }
+    document.body.classList.remove("s-rank-active");
   }
-
-  // Atualiza o card na interface
-  scoreEl.textContent = Number(pbScore).toLocaleString("pt-BR");
-  wpmEl.textContent = pbWpm;
-  rankEl.textContent = pbRank;
 }
 
-// --- ELEMENTOS DO MODAL DE CONFIGURAÇÕES ---
-const settingsModal = document.getElementById('settingsOverlay');
-const settingsBtn = document.getElementById('settingsModalBtn');
-const closeSettingsBtn = document.getElementById('closeSettingsModalBtn');
-
-// Inputs de Acessibilidade e Visual
-const cfgCleanFont = document.getElementById('cfgCleanFont');
-const cfgDisableBlink = document.getElementById('cfgDisableBlink');
-const cfgDisableGlow = document.getElementById('cfgDisableGlow');
-const cfgScreenShake = document.getElementById('cfgScreenShake');
-const cfgHighContrast = document.getElementById('cfgHighContrast');
-
-// --- ABERTURA E FECHAMENTO DO MODAL ---
-settingsBtn?.addEventListener('click', () => settingsModal?.classList.add('active'));
-closeSettingsBtn?.addEventListener('click', () => settingsModal?.classList.remove('active'));
-
-// Fechar modal ao clicar fora da caixa do card
-settingsModal?.addEventListener('click', (e) => {
-  if (e.target === settingsModal) {
-    settingsModal.classList.remove('active');
-  }
-});
-
-// --- GERENCIAMENTO DE PREFERÊNCIAS VISUAIS ---
-function applyPreferences() {
-  const cleanFont = localStorage.getItem('cfgCleanFont') === 'true';
-  const disableBlink = localStorage.getItem('cfgDisableBlink') === 'true';
-  const disableGlow = localStorage.getItem('cfgDisableGlow') === 'true';
-  const screenShake = localStorage.getItem('cfgScreenShake') !== 'false'; // Padrão: true
-  const highContrast = localStorage.getItem('cfgHighContrast') === 'true';
-
-  // Aplica/Remove classes no body para estilização global CSS
-  document.body.classList.toggle('clean-font', cleanFont);
-  document.body.classList.toggle('disable-blink', disableBlink);
-  document.body.classList.toggle('disable-glow', disableGlow);
-  document.body.classList.toggle('no-shake', !screenShake);
-  document.body.classList.toggle('high-contrast', highContrast);
-
-  // Atualiza os checkboxes do HTML para bater com os valores salvas
-  if (cfgCleanFont) cfgCleanFont.checked = cleanFont;
-  if (cfgDisableBlink) cfgDisableBlink.checked = disableBlink;
-  if (cfgDisableGlow) cfgDisableGlow.checked = disableGlow;
-  if (cfgScreenShake) cfgScreenShake.checked = screenShake;
-  if (cfgHighContrast) cfgHighContrast.checked = highContrast;
-}
-
-// Event Listeners dos Toggles de Configurações
-cfgCleanFont?.addEventListener('change', (e) => {
-  localStorage.setItem('cfgCleanFont', e.target.checked);
-  applyPreferences();
-});
-
-cfgDisableBlink?.addEventListener('change', (e) => {
-  localStorage.setItem('cfgDisableBlink', e.target.checked);
-  applyPreferences();
-});
-
-cfgDisableGlow?.addEventListener('change', (e) => {
-  localStorage.setItem('cfgDisableGlow', e.target.checked);
-  applyPreferences();
-});
-
-cfgScreenShake?.addEventListener('change', (e) => {
-  localStorage.setItem('cfgScreenShake', e.target.checked);
-  applyPreferences();
-});
-
-cfgHighContrast?.addEventListener('change', (e) => {
-  localStorage.setItem('cfgHighContrast', e.target.checked);
-  applyPreferences();
-});
-
-
-// --- ACESSIBILIDADE: CONTROLE DO TAMANHO DA FONTE ---
-let currentFontSize = parseFloat(localStorage.getItem('typingFontSize')) || 1.25;
-const baseFontSize = 1.25; // 1.25rem representa o tamanho padrão de 100%
-
-function updateFontSize(size) {
-  // Limita o tamanho do texto entre 1.0rem (~80%) e 2.2rem (~176%)
-  currentFontSize = Math.min(Math.max(size, 1.0), 2.2);
+function animateFinalScore(targetScore) {
+  const finalScoreEl = document.getElementById("finalScore");
+  if (!finalScoreEl) return;
   
-  // Aplica a variável no CSS global
-  document.documentElement.style.setProperty('--typing-font-size', `${currentFontSize}rem`);
-  localStorage.setItem('typingFontSize', currentFontSize);
-
-  // Atualiza o texto visual dentro do próprio botão de reset
-  const resetBtn = document.getElementById('btnResetFont');
-  if (resetBtn) {
-    const percentage = Math.round((currentFontSize / baseFontSize) * 100);
-    resetBtn.textContent = `${percentage}%`;
-  }
-}
-
-// Event Listeners dos Botões
-document.getElementById('btnIncreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize + 0.2));
-document.getElementById('btnDecreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize - 0.2));
-document.getElementById('btnResetFont')?.addEventListener('click', () => updateFontSize(baseFontSize));
-
-// --- INICIALIZAÇÃO ÚNICA NO DOMCONTENTLOADED ---
-document.addEventListener("DOMContentLoaded", () => {
-  // 1. Aplica preferências salvas do usuário
-  applyPreferences();
-  updateFontSize(currentFontSize);
-
-  // 2. Inicializa o seletor de músicas e leaderboard
-  const songSelect = document.getElementById("songSelect");
-  if (songSelect) {
-    if (songSelect.value) {
-      renderLeaderboard(songSelect.value, currentLeaderboardMetric);
-      updateUserPBDisplay(songSelect.value);
+  let current = 0;
+  const increment = Math.max(1, Math.floor(targetScore / 40));
+  const timer = setInterval(() => {
+    current += increment;
+    if (current >= targetScore) {
+      current = targetScore;
+      clearInterval(timer);
     }
-
-    songSelect.addEventListener("change", (e) => {
-      renderLeaderboard(e.target.value, currentLeaderboardMetric);
-      updateUserPBDisplay(e.target.value);
-    });
-  }
-});
-
-// ==========================================
-// SISTEMA DE NOTIFICAÇÃO (TOAST CYBERPUNK)
-// ==========================================
-
-function showNotification(message, isError = true) {
-  let toast = document.getElementById("cyberToast");
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "cyberToast";
-    toast.style.position = "fixed";
-    toast.style.bottom = "30px";
-    toast.style.left = "50%";
-    toast.style.transform = "translateX(-50%) translateY(100px)";
-    toast.style.backgroundColor = "rgba(10, 10, 18, 0.95)";
-    toast.style.border = "1px solid #ff0066";
-    toast.style.boxShadow = "0 0 15px rgba(255, 0, 102, 0.4)";
-    toast.style.color = "#ffffff";
-    toast.style.padding = "12px 24px";
-    toast.style.borderRadius = "8px";
-    toast.style.fontFamily = "monospace, sans-serif";
-    toast.style.fontSize = "0.95rem";
-    toast.style.fontWeight = "bold";
-    toast.style.zIndex = "99999";
-    toast.style.transition = "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-    toast.style.display = "flex";
-    toast.style.alignItems = "center";
-    toast.style.gap = "10px";
-    toast.style.pointerEvents = "none";
-    document.body.appendChild(toast);
-  }
-
-  toast.style.borderColor = isError ? "#ff0066" : "#00ffcc";
-  toast.style.boxShadow = isError ? "0 0 15px rgba(255, 0, 102, 0.4)" : "0 0 15px rgba(0, 255, 204, 0.4)";
-  toast.innerHTML = `<span style="font-size: 1.2rem;">${isError ? '⚠️' : '✓'}</span> ${message}`;
-
-  setTimeout(() => { toast.style.transform = "translateX(-50%) translateY(0)"; }, 10);
-  setTimeout(() => { toast.style.transform = "translateX(-50%) translateY(100px)"; }, 3500);
+    finalScoreEl.textContent = current;
+  }, 20);
 }
 
-// ==========================================
-// FUNÇÕES UTILITÁRIAS & AUTENTICAÇÃO USUÁRIO
-// ==========================================
+function showNotification(msg, isError = false) {
+  const notif = document.createElement("div");
+  notif.className = `notification ${isError ? "error" : "success"}`;
+  notif.textContent = msg;
+  document.body.appendChild(notif);
+  setTimeout(() => notif.remove(), 3000);
+}
 
+// SHA-256 Auxiliar para o painel admin
 async function sha256(str) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  const buf = await crypto.subcrypto ? crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)) : null;
+  if (!buf) return "";
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-function escapeHtml(text) {
-  if (!text) return "";
-  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
 function getLoggedUser() {
-  const storedUser = localStorage.getItem("currentUser") || 
-                     localStorage.getItem("user") || 
-                     localStorage.getItem("usuario") ||
-                     localStorage.getItem("logged_in_user");
-                     
-  if (storedUser) {
-    try {
-      const parsed = JSON.parse(storedUser);
-      if (typeof parsed === "object" && parsed !== null) return parsed;
-      return { username: String(parsed) };
-    } catch (e) {
-      return { username: storedUser };
-    }
+  try {
+    return JSON.parse(localStorage.getItem("user")) || null;
+  } catch {
+    return null;
   }
-
-  const navUserEl = document.querySelector(".user-name, #userName, .profile-name, .user-info, header span");
-  if (navUserEl && navUserEl.textContent.trim() !== "") {
-    return { username: navUserEl.textContent.trim() };
-  }
-
-  const hasLogoutBtn = Array.from(document.querySelectorAll("button, a")).some(el => {
-    const txt = el.textContent.trim().toUpperCase();
-    return txt === "SAIR" || txt === "LOGOUT";
-  });
-
-  if (hasLogoutBtn) return { username: "INFAMOS" };
-  return null;
 }
 
 // ==========================================
-// LÓGICA CORE DO JOGO DE DIGITAÇÃO
+// RENDERIZAÇÃO DE TEXTO E LÓGICA DO JOGO
 // ==========================================
-
-function getSongData(songKey) {
-  for (const sectionKey in MUSIC_LIBRARY) {
-    const section = MUSIC_LIBRARY[sectionKey];
-    if (section.tracks[songKey]) return section.tracks[songKey];
-  }
-  return null;
-}
-
-if (songSelect) {
-  songSelect.innerHTML = "";
-  Object.keys(MUSIC_LIBRARY).forEach(sectionKey => {
-    const section = MUSIC_LIBRARY[sectionKey];
-    const group = document.createElement("optgroup");
-    group.label = section.sectionName;
-
-    Object.keys(section.tracks).forEach(trackKey => {
-      const track = section.tracks[trackKey];
-      const opt = document.createElement("option");
-      opt.value = trackKey;
-      opt.textContent = `${track.title} (x${track.multiplier})`;
-      group.appendChild(opt);
-    });
-
-    songSelect.appendChild(group);
-  });
-}
-
-function applySelectedSong(key) {
-  currentSongKey = key;
-  const songData = getSongData(key);
-  if (!songData) return;
-
-  if (typeof menuMusic !== "undefined" && menuMusic) menuMusic.src = songData.url;
-  if (typeof gameMusic !== "undefined" && gameMusic) gameMusic.src = songData.url;
-  if (typeof renderLeaderboard === "function") renderLeaderboard(key);
-}
-
-if (currentSongKey) applySelectedSong(currentSongKey);
-
-if (songSelect) {
-  songSelect.addEventListener("change", (e) => {
-    applySelectedSong(e.target.value);
-    if (!gameActive && typeof playMenuMusic === "function") playMenuMusic();
-  });
-}
-
-function getCurrentRank() {
-  for (let i = RANKS.length - 1; i >= 0; i--) {
-    if (hypePoints >= RANKS[i].min) {
-      highestRankIndex = Math.max(highestRankIndex, i);
-      currentRankIndex = i;
-      return { ...RANKS[i], index: i };
-    }
-  }
-  currentRankIndex = 0;
-  return { ...RANKS[0], index: 0 };
-}
-
-function triggerRankUpAnimation(rank) {
-  if (!rankUpBadge || !rankUpOverlay) return;
-
-  rankUpBadge.textContent = rank.name;
-  rankUpBadge.style.color = rank.color;
-  rankUpOverlay.style.setProperty('--rank-color', rank.color);
-
-  if (rank.index >= 4) {
-    rankBadgeContainer.classList.add('is-rank-s');
-    document.body.classList.add('mega-shake');
-    setTimeout(() => document.body.classList.remove('mega-shake'), 600);
-  } else {
-    rankBadgeContainer.classList.remove('is-rank-s');
-    document.body.classList.add('screen-shake');
-    setTimeout(() => document.body.classList.remove('screen-shake'), 400);
-  }
-
-  if (rank.index >= 4 && screenFlash) {
-    screenFlash.classList.add('active');
-    setTimeout(() => screenFlash.classList.remove('active'), 200);
-  }
-
-  const rect = rankBadgeContainer.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  const particleCount = 16 + (rank.index * 8);
-
-  for (let i = 0; i < particleCount; i++) {
-    spawnParticle(centerX, centerY, rank.color, 50 + rank.index * 20, Math.random() * 8 + 4);
-  }
-
-  rankUpOverlay.classList.remove('active');
-  if (rankUpShockwave) {
-    rankUpShockwave.style.animation = 'none';
-    void rankUpShockwave.offsetWidth; 
-    rankUpShockwave.style.animation = 'shockwave-expand 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards';
-  }
-  rankUpOverlay.classList.add('active');
-
-  if (typeof playRankUpSound === "function") playRankUpSound(rank.index);
-  setTimeout(() => rankUpOverlay.classList.remove('active'), 1500);
-}
 
 function renderText() {
   if (!game) return;
   game.innerHTML = "";
   cachedCharSpans = [];
 
-  // Container principal flexível para centralizar e alinhar perfeitamente as frases
   const container = document.createElement("div");
-  container.style.display = "flex";
-  container.style.flexWrap = "wrap";
-  container.style.justifyContent = "center";
+  container.style.display = "inline-flex";
   container.style.alignItems = "center";
-  container.style.gap = "0.35em"; // Mantém o espaçamento natural e uniforme entre as palavras
-  container.style.width = "100%";
+  container.style.justifyContent = "center";
+  container.style.whiteSpace = "nowrap";
 
   const words = text.split(" ");
 
   words.forEach((word, wordIndex) => {
-    // Agrupa os caracteres da palavra para que ela não quebre no meio
     const wordSpan = document.createElement("span");
     wordSpan.style.display = "inline-flex";
-    wordSpan.style.whiteSpace = "nowrap";
 
     word.split("").forEach((char) => {
       const charSpan = document.createElement("span");
@@ -559,11 +257,11 @@ function renderText() {
 
     container.appendChild(wordSpan);
 
-    // Mantém o caractere de espaço no array original para validação, som e pontuação
     if (wordIndex < words.length - 1) {
       const spaceSpan = document.createElement("span");
       spaceSpan.className = "char pending space";
-      spaceSpan.style.display = "none"; // O gap do flexbox assume o visual, mas o span fica registrado no fluxo do jogo
+      spaceSpan.style.display = "inline-block";
+      spaceSpan.style.width = "0.4em";
       spaceSpan.innerHTML = "&nbsp;";
 
       container.appendChild(spaceSpan);
@@ -573,260 +271,138 @@ function renderText() {
 
   game.appendChild(container);
 
-  // Define o cursor na primeira letra
   if (cachedCharSpans.length > 0) {
     cachedCharSpans[0].classList.remove("pending");
     cachedCharSpans[0].classList.add("current");
   }
 }
 
-function nextText() {
-  const songData = getSongData(currentSongKey);
-  if (!songData) return;
+function updateStats() {
+  if (scoreValue) scoreValue.textContent = score;
+  if (comboValue) comboValue.textContent = combo;
 
-  const currentPhrases = songData.phrases;
-  text = currentPhrases[Math.floor(Math.random() * currentPhrases.length)];
-  correctCharsCount = 0;
+  // Cálculo de WPM
+  const currentWpm = Math.round((charCount / 5));
+  if (currentWpm > maxWpm) maxWpm = currentWpm;
+  if (wpmValue) wpmValue.textContent = currentWpm;
+
+  // Cálculo de Rank
+  let currentRank = RANKS[0];
+  RANKS.forEach((r, idx) => {
+    if (score >= r.minScore) {
+      currentRank = r;
+      currentRankIndex = idx;
+    }
+  });
+
+  if (currentRankIndex > highestRankIndex) {
+    highestRankIndex = currentRankIndex;
+  }
+
+  if (rankValue) {
+    rankValue.textContent = currentRank.name;
+    rankValue.style.color = currentRank.color;
+  }
+
+  if (currentRank.name === "S" || currentRank.name === "SS" || currentRank.name === "SSS") {
+    triggerSRankEffects(true);
+  }
+}
+
+function handleInput(e) {
+  if (!gameActive) return;
+
+  const typedVal = input.value;
+  const currentCharSpan = cachedCharSpans[charCount];
+
+  if (!currentCharSpan) return;
+
+  const expectedChar = currentCharSpan.classList.contains("space") ? " " : currentCharSpan.textContent;
+  const lastTypedChar = typedVal.slice(-1);
+
+  if (lastTypedChar === expectedChar) {
+    // ACERTO
+    currentCharSpan.classList.remove("current", "pending", "wrong");
+    currentCharSpan.classList.add("correct");
+
+    combo++;
+    if (combo > maxCombo) maxCombo = combo;
+
+    // Ganho de pontos com base no combo
+    const pointsGained = 10 + Math.floor(combo / 5) * 5;
+    score += pointsGained;
+    charCount++;
+
+    // Bônus de tempo a cada 20 acertos no combo (+2 segundos)
+    if (combo > 0 && combo % 20 === 0) {
+      timeLeft = Math.min(maxTime, timeLeft + 2);
+      showFloatingText("+2s Tempo!", "#00ffcc");
+    } else {
+      showFloatingText(`+${pointsGained}`, "#00ffcc");
+    }
+
+    // Avançar Cursor
+    if (charCount < cachedCharSpans.length) {
+      cachedCharSpans[charCount].classList.remove("pending");
+      cachedCharSpans[charCount].classList.add("current");
+    } else {
+      // Loop do texto caso finalize a frase antes do tempo acabar
+      charCount = 0;
+      renderText();
+    }
+  } else {
+    // ERRO: Perde combo e sofre penalidade de tempo (-1.5 segundos)
+    combo = 0;
+    timeLeft = Math.max(0, timeLeft - 1.5);
+    currentCharSpan.classList.add("wrong");
+
+    showFloatingText("-1.5s Erro!", "#ff0066", true);
+  }
+
+  input.value = "";
+  updateStats();
+}
+
+function updateTimer() {
+  timeLeft -= 0.1;
+  if (timerFill) {
+    const percentage = Math.max(0, (timeLeft / maxTime) * 100);
+    timerFill.style.width = `${percentage}%`;
+  }
+
+  if (timeLeft <= 0) {
+    timeLeft = 0;
+    endGame();
+  }
+}
+
+function startGame() {
+  gameActive = true;
+  score = 0;
+  combo = 0;
+  maxCombo = 0;
+  charCount = 0;
+  maxWpm = 0;
+  timeLeft = 60;
+  maxTime = 60;
+  highestRankIndex = 0;
+
+  if (overlay) overlay.classList.remove("active");
+  if (playBtn) playBtn.style.display = "none";
+  if (quitBtn) quitBtn.style.display = "inline-block";
+  if (songSelect) songSelect.disabled = true;
 
   if (input) {
-    input.value = "";
     input.disabled = false;
-    input.classList.remove("error");
+    input.value = "";
+    input.focus();
   }
 
   renderText();
-  if (input) setTimeout(() => input.focus(), 50);
-  timeLeft = Math.min(maxTime, timeLeft + 4);
-}
-
-function triggerSRankEffects(isActivating) {
-  if (typeof gameMusic === "undefined" || !gameMusic) return;
-
-  if (isActivating && !isSRankActive) {
-    isSRankActive = true;
-    if (typeof fadeAudioVolume === "function") fadeAudioVolume(gameMusic, MAX_VOLUME, 500);
-    if (game) game.classList.add('s-rank-active');
-    if (input) input.classList.add('s-rank-active');
-  } else if (!isActivating && isSRankActive) {
-    isSRankActive = false;
-    if (typeof fadeAudioVolume === "function") fadeAudioVolume(gameMusic, BASE_VOLUME, 500);
-    if (game) game.classList.remove('s-rank-active');
-    if (input) input.classList.remove('s-rank-active');
-  }
-}
-
-function updateStats() {
-  if (scoreValue) scoreValue.textContent = score.toLocaleString();
-  if (comboValue) comboValue.textContent = combo + "x";
-
-  const currentRank = getCurrentRank();
-  
-  if (currentRank.index > previousRankIndex && gameActive) {
-    triggerRankUpAnimation(currentRank);
-  }
-  previousRankIndex = currentRank.index;
-
-  triggerSRankEffects(currentRank.index >= 4);
-
-  if (hypeValue) {
-    if (hypeValue.textContent !== currentRank.name) {
-      hypeValue.textContent = currentRank.name;
-      hypeValue.style.transform = "scale(1.5)";
-      setTimeout(() => hypeValue.style.transform = "scale(1)", 150);
-    }
-    hypeValue.style.color = currentRank.color;
-  }
-
-  const nextRank = RANKS[currentRank.index + 1] || currentRank;
-  const currentMin = currentRank.min;
-  const currentMax = nextRank.min === currentMin ? currentMin + 30 : nextRank.min;
-  const pct = Math.min(100, Math.max(0, ((hypePoints - currentMin) / (currentMax - currentMin)) * 100));
-  if (hypeBar) hypeBar.style.width = pct + "%";
-
-  if (currentRank.name === "HERO") {
-    document.body.classList.add("frenzy");
-  } else {
-    document.body.classList.remove("frenzy");
-  }
-
-  if (startTime && charCount > 0) {
-    const minutes = (Date.now() - startTime) / 60000;
-    const wpm = Math.round((charCount / 5) / Math.max(minutes, 0.01));
-    if (wpmValue) wpmValue.textContent = wpm;
-    maxWpm = Math.max(maxWpm, wpm);
-  }
-}
-
-function spawnParticle(x, y, color = "#00ff88", distance = 40, size = 6) {
-  const p = document.createElement("div");
-  p.className = "particle";
-  p.style.width = size + "px";
-  p.style.height = size + "px";
-  p.style.background = color;
-  p.style.boxShadow = `0 0 10px ${color}`;
-  p.style.left = x + "px";
-  p.style.top = y + "px";
-
-  const angle = Math.random() * Math.PI * 2;
-  const dist = distance * (0.6 + Math.random() * 0.8);
-  p.style.setProperty("--tx", Math.cos(angle) * dist + "px");
-  p.style.setProperty("--ty", Math.sin(angle) * dist + "px");
-
-  document.body.appendChild(p);
-  setTimeout(() => p.remove(), 750);
-}
-
-function spawnParticles(x, y, color = "#00ff88", count = 6) {
-  for (let i = 0; i < count; i++) {
-    spawnParticle(x, y, color, 35, Math.random() * 5 + 3);
-  }
-}
-
-function showScorePopup(x, y, pointsGained) {
-  const p = document.createElement("div");
-  p.className = "time-pop positive";
-  p.textContent = `+${pointsGained}`;
-  p.style.color = "#00ffcc";
-  p.style.fontSize = "1.1rem";
-  p.style.fontWeight = "bold";
-  p.style.left = (x + 20) + "px";
-  p.style.top = (y - 35) + "px";
-  document.body.appendChild(p);
-  setTimeout(() => p.remove(), 700);
-}
-
-function showTimePopup(x, y, amount, isPositive) {
-  const p = document.createElement("div");
-  p.className = `time-pop ${isPositive ? "positive" : "negative"}`;
-  p.textContent = `${isPositive ? "+" : ""}${amount}s`;
-  p.style.left = x + "px";
-  p.style.top = (y - 15) + "px";
-  document.body.appendChild(p);
-  setTimeout(() => p.remove(), 700);
-}
-
-function showComboPopup(textStr) {
-  const popup = document.createElement("div");
-  popup.className = "combo-popup";
-  popup.textContent = textStr;
-  popup.style.left = "50%";
-  popup.style.top = "38%";
-  popup.style.transform = "translateX(-50%) scale(1.2)";
-  document.body.appendChild(popup);
-  setTimeout(() => popup.remove(), 800);
-}
-
-if (game) {
-  game.addEventListener("click", () => {
-    if (gameActive && input && !input.disabled) input.focus();
-  });
-}
-
-function askGuestConfirmation() {
-  return new Promise((resolve) => {
-    const modal = document.getElementById("guestModal");
-    const confirmBtn = document.getElementById("modalConfirmBtn");
-    const cancelBtn = document.getElementById("modalCancelBtn");
-
-    modal.classList.add("active");
-
-    const handleConfirm = () => {
-      cleanup();
-      resolve(true);
-    };
-
-    const handleCancel = () => {
-      cleanup();
-      resolve(false);
-    };
-
-    const cleanup = () => {
-      modal.classList.remove("active");
-      confirmBtn.removeEventListener("click", handleConfirm);
-      cancelBtn.removeEventListener("click", handleCancel);
-    };
-
-    confirmBtn.addEventListener("click", handleConfirm);
-    cancelBtn.addEventListener("click", handleCancel);
-  });
-}
-
-async function startGame() {
-  if (typeof currentUser === "undefined" || !currentUser) {
-    const aceitouContinuar = await askGuestConfirmation();
-    if (!aceitouContinuar) return;
-  }
-
-  if (typeof initAudio === "function") initAudio();
-  if (typeof playGameMusic === "function") playGameMusic();
-
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
-
-  score = 0;
-  hypePoints = 0;
-  combo = 0;
-  highestRankIndex = 0;
-  currentRankIndex = 0;
-  previousRankIndex = 0;
-  charCount = 0;
-  maxWpm = 0;
-  timeLeft = maxTime;
-  correctCharsCount = 0;
-  gameActive = true;
-  isSRankActive = false;
-  startTime = Date.now();
-
-  if (overlay) overlay.classList.remove("active");
-  if (songSelect) songSelect.disabled = true;
-  if (quitBtn) quitBtn.style.display = "block";
-  if (playBtn) playBtn.style.display = "none";
-  
-  triggerSRankEffects(false);
   updateStats();
-  nextText();
 
-  timerInterval = setInterval(() => {
-    if (!gameActive) {
-      clearInterval(timerInterval);
-      return;
-    }
-
-    timeLeft -= 0.1;
-    const pct = Math.max(0, (timeLeft / maxTime) * 100);
-    if (timerFill) {
-      timerFill.style.width = pct + "%";
-      timerFill.classList.toggle("danger", pct < 25);
-    }
-
-    if (hypePoints > 0) {
-      hypePoints = Math.max(0, hypePoints - 0.08);
-      updateStats();
-    }
-
-    if (timeLeft <= 0) endGame();
-  }, 100);
-}
-
-function animateFinalScore(targetScore) {
-  const el = document.getElementById("finalScore");
-  if (!el) return;
-  let current = 0;
-  const duration = 1200;
-  const stepTime = 20;
-  const steps = duration / stepTime;
-  const increment = targetScore / steps;
-
-  const timer = setInterval(() => {
-    current += increment;
-    if (current >= targetScore) {
-      current = targetScore;
-      clearInterval(timer);
-    }
-    el.textContent = Math.round(current).toLocaleString();
-  }, stepTime);
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 100);
 }
 
 function endGame() {
@@ -905,9 +481,12 @@ function returnToMenu() {
   if (typeof playMenuMusic === "function") playMenuMusic();
 }
 
+// Eventos de entrada
+if (input) input.addEventListener("input", handleInput);
 if (playBtn) playBtn.addEventListener("click", startGame);
 if (restartBtn) restartBtn.addEventListener("click", startGame);
 if (menuBtn) menuBtn.addEventListener("click", returnToMenu);
+if (quitBtn) quitBtn.addEventListener("click", returnToMenu);
 
 window.addEventListener("keydown", (e) => {
   if (!gameActive && overlay && overlay.classList.contains("active") && (e.key === "Enter" || e.key === " ")) {
@@ -915,6 +494,7 @@ window.addEventListener("keydown", (e) => {
     startGame();
   }
 });
+
 // ==========================================
 // REPORT DE BUGS & DISCORD WEBHOOK
 // ==========================================
@@ -971,7 +551,7 @@ if (bugReportForm) {
       return;
     }
 
-    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1541949547255955476/Tgvh7uqpFbS1CrBLKhQaEunXUb5SBdKtsSLScu3N2JlpkiWHiJT_XJBxpfKMe2BbRA98";
+    const DISCORD_WEBHOOK_URL = "SUA_DISCORD_WEBHOOK_URL_AQUI";
 
     if (bugFeedbackMsg) {
       bugFeedbackMsg.textContent = "Enviando relatório...";
@@ -1030,20 +610,16 @@ if (bugReportForm) {
 // INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
 // ==========================================
 
-// Garante que o código encontre o Supabase mesmo se estiver como _supabase
 const getSupabaseClient = () => {
-  // 1. Tenta pegar a instância criada no escopo global
   let client = (typeof supabase !== "undefined" ? supabase : null) || 
                (typeof window._supabase !== "undefined" ? window._supabase : null);
 
   if (!client) return null;
 
-  // 2. Se a variável tiver o método .from, a instância já está pronta!
   if (typeof client.from === "function") {
     return client;
   }
 
-  // 3. Se não tiver .from, mas tiver a biblioteca global e as chaves, inicializa a instância
   if (typeof client.createClient === "function" && typeof SUPABASE_URL !== "undefined" && typeof SUPABASE_ANON_KEY !== "undefined") {
     if (!window._supabaseInstance) {
       window._supabaseInstance = client.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1059,10 +635,7 @@ announcements = window.announcements || [];
 async function fetchAnnouncements() {
   try {
     const client = getSupabaseClient();
-    if (!client) {
-      console.error("Cliente Supabase não encontrado!");
-      return [];
-    }
+    if (!client) return [];
 
     const { data, error } = await client
       .from("announcements")
@@ -1119,7 +692,6 @@ function renderAnnouncements() {
   }).join("");
 }
 
-// Delegation de clique para exclusão
 if (newsList) {
   newsList.addEventListener("click", async (e) => {
     const deleteBtn = e.target.closest(".delete-news-btn");
@@ -1182,7 +754,7 @@ if (adminPostForm) {
 
     try {
       const client = getSupabaseClient();
-      if (!client) throw new Error("Cliente Supabase não encontrado. Verifique a inicialização.");
+      if (!client) throw new Error("Cliente Supabase não encontrado.");
 
       const { error } = await client
         .from("announcements")
@@ -1196,15 +768,14 @@ if (adminPostForm) {
 
       await loadAndRenderAnnouncements();
     } catch (err) {
-      console.error("Erro detalhado ao inserir anúncio:", err);
-      // Exibe o motivo exato retornado pelo Supabase (ex: erro de permissão RLS)
-      alert(`Erro no Supabase: ${err.message || err.details || "Não foi possível salvar a mensagem."}`);
+      console.error("Erro ao inserir anúncio:", err);
+      alert(`Erro no Supabase: ${err.message || "Não foi possível salvar."}`);
     }
   });
 }
 
 // ==========================================
-// PAINEL ADMIN (SHIFT + A) E EVENTOS DE MODAL
+// PAINEL ADMIN (SHIFT + A) E MODAIS
 // ==========================================
 
 window.addEventListener("keydown", (e) => {
@@ -1260,12 +831,10 @@ window.addEventListener("click", (e) => {
   if (bugReportOverlay && e.target === bugReportOverlay) closeBugModal();
 });
 
-// Carrega os anúncios assim que o script terminar de ler a página
-document.addEventListener("DOMContentLoaded", () => {
-  loadAndRenderAnnouncements();
-});
-// Caso o DOM já tenha carregado:
-if (document.readyState === "complete" || document.readyState === "interactive") {
+// Inicialização
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", loadAndRenderAnnouncements);
+} else {
   loadAndRenderAnnouncements();
 }
 // Inicializa a chamada dos anúncios no Supabase
