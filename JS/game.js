@@ -219,6 +219,67 @@ async function updateUserPBDisplay(songKey) {
   rankEl.textContent = pbRank;
 }
 
+// --- CONFIGURAÇÕES DE ACESSIBILIDADE E VISUAL ---
+const cfgCleanFont = document.getElementById('cfgCleanFont');
+const cfgDisableBlink = document.getElementById('cfgDisableBlink');
+const cfgDisableGlow = document.getElementById('cfgDisableGlow');
+const cfgScreenShake = document.getElementById('cfgScreenShake');
+const cfgHighContrast = document.getElementById('cfgHighContrast');
+
+// Função para aplicar todas as preferências salvas no carregamento
+function applyPreferences() {
+  const cleanFont = localStorage.getItem('cfgCleanFont') === 'true';
+  const disableBlink = localStorage.getItem('cfgDisableBlink') === 'true';
+  const disableGlow = localStorage.getItem('cfgDisableGlow') === 'true';
+  const screenShake = localStorage.getItem('cfgScreenShake') !== 'false';
+  const highContrast = localStorage.getItem('cfgHighContrast') === 'true';
+
+  // Aplica nas classes do body/document
+  document.body.classList.toggle('clean-font', cleanFont);
+  document.body.classList.toggle('disable-blink', disableBlink);
+  document.body.classList.toggle('disable-glow', disableGlow);
+  document.body.classList.toggle('no-shake', !screenShake);
+  document.body.classList.toggle('high-contrast', highContrast);
+
+  // Sincroniza os estados dos inputs do modal
+  if (cfgCleanFont) cfgCleanFont.checked = cleanFont;
+  if (cfgDisableBlink) cfgDisableBlink.checked = disableBlink;
+  if (cfgDisableGlow) cfgDisableGlow.checked = disableGlow;
+  if (cfgScreenShake) cfgScreenShake.checked = screenShake;
+  if (cfgHighContrast) cfgHighContrast.checked = highContrast;
+}
+
+// Event Listeners para salvar alterações em tempo real
+cfgCleanFont?.addEventListener('change', (e) => {
+  localStorage.setItem('cfgCleanFont', e.target.checked);
+  applyPreferences();
+});
+
+cfgDisableBlink?.addEventListener('change', (e) => {
+  localStorage.setItem('cfgDisableBlink', e.target.checked);
+  applyPreferences();
+});
+
+cfgDisableGlow?.addEventListener('change', (e) => {
+  localStorage.setItem('cfgDisableGlow', e.target.checked);
+  applyPreferences();
+});
+
+cfgScreenShake?.addEventListener('change', (e) => {
+  localStorage.setItem('cfgScreenShake', e.target.checked);
+  applyPreferences();
+});
+
+cfgHighContrast?.addEventListener('change', (e) => {
+  localStorage.setItem('cfgHighContrast', e.target.checked);
+  applyPreferences();
+});
+
+// Executa na inicialização da página
+document.addEventListener('DOMContentLoaded', () => {
+  applyPreferences();
+});
+
 // Atualiza a inicialização do seletor
 document.addEventListener("DOMContentLoaded", () => {
   const songSelect = document.getElementById("songSelect");
