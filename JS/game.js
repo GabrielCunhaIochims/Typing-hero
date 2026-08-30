@@ -292,25 +292,27 @@ cfgHighContrast?.addEventListener('change', (e) => {
 });
 
 // --- ACESSIBILIDADE: CONTROLE DO TAMANHO DA FONTE ---
+// --- ACESSIBILIDADE: CONTROLE DO TAMANHO DA FONTE ---
 let currentFontSize = parseFloat(localStorage.getItem('typingFontSize')) || 1.25;
-const baseFontSize = 1.25; // Define 1.25rem como o padrão (100%)
+const baseFontSize = 1.25; // 1.25rem representa o tamanho padrão de 100%
 
 function updateFontSize(size) {
-  // Limita o tamanho entre 1.0rem e 2.2rem
+  // Limita o tamanho do texto entre 1.0rem (~80%) e 2.2rem (~176%)
   currentFontSize = Math.min(Math.max(size, 1.0), 2.2);
   
-  // Aplica a variável CSS
+  // Aplica a variável no CSS global
   document.documentElement.style.setProperty('--typing-font-size', `${currentFontSize}rem`);
   localStorage.setItem('typingFontSize', currentFontSize);
 
-  // Atualiza o texto visual da porcentagem no modal (Ex: 80%, 100%, 120%)
-  const fontIndicator = document.getElementById('fontSizeIndicator');
-  if (fontIndicator) {
+  // Atualiza o texto visual dentro do próprio botão de reset
+  const resetBtn = document.getElementById('btnResetFont');
+  if (resetBtn) {
     const percentage = Math.round((currentFontSize / baseFontSize) * 100);
-    fontIndicator.textContent = `${percentage}%`;
+    resetBtn.textContent = `${percentage}%`;
   }
 }
 
+// Event Listeners dos Botões
 document.getElementById('btnIncreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize + 0.2));
 document.getElementById('btnDecreaseFont')?.addEventListener('click', () => updateFontSize(currentFontSize - 0.2));
 document.getElementById('btnResetFont')?.addEventListener('click', () => updateFontSize(baseFontSize));
