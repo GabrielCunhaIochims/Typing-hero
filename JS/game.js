@@ -988,7 +988,39 @@ if (input) {
 
   input.addEventListener("paste", (e) => e.preventDefault());
 }
+//IMPEDE FRASES QUEBRADAS
+function renderTextToType(text) {
+  const gameElement = document.getElementById('game');
+  gameElement.innerHTML = '';
 
+  // Divide o texto por palavras, mantendo o controle de caracteres
+  const words = text.split(' ');
+
+  words.forEach((word, wordIndex) => {
+    // Cria um container para cada palavra
+    const wordSpan = document.createElement('span');
+    wordSpan.style.display = 'inline-block';
+    wordSpan.style.whiteSpace = 'nowrap';
+
+    // Insere cada letra da palavra
+    word.split('').forEach((char) => {
+      const charSpan = document.createElement('span');
+      charSpan.classList.add('char', 'pending');
+      charSpan.textContent = char;
+      wordSpan.appendChild(charSpan);
+    });
+
+    gameElement.appendChild(wordSpan);
+
+    // Adiciona o espaço entre palavras (exceto na última palavra)
+    if (wordIndex < words.length - 1) {
+      const spaceSpan = document.createElement('span');
+      spaceSpan.classList.add('char', 'pending', 'space');
+      spaceSpan.innerHTML = '&nbsp;';
+      gameElement.appendChild(spaceSpan);
+    }
+  });
+}
 // ==========================================
 // REPORT DE BUGS & DISCORD WEBHOOK
 // ==========================================
