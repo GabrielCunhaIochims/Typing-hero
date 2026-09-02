@@ -535,12 +535,24 @@ function renderText() {
   game.innerHTML = "";
   cachedCharSpans = [];
 
+  let currentWordSpan = document.createElement("span");
+  currentWordSpan.style.display = "inline-block";
+  currentWordSpan.style.whiteSpace = "nowrap";
+
   for (let i = 0; i < text.length; i++) {
     const span = document.createElement("span");
     span.className = "char pending";
     span.textContent = text[i] === " " ? "\u00A0" : text[i];
-    game.appendChild(span);
+    
+    currentWordSpan.appendChild(span);
     cachedCharSpans.push(span);
+
+    if (text[i] === " " || i === text.length - 1) {
+      game.appendChild(currentWordSpan);
+      currentWordSpan = document.createElement("span");
+      currentWordSpan.style.display = "inline-block";
+      currentWordSpan.style.whiteSpace = "nowrap";
+    }
   }
 }
 
@@ -685,11 +697,17 @@ if (game) {
     if (gameActive && input && !input.disabled) input.focus();
   });
 }
+
 function askGuestConfirmation() {
   return new Promise((resolve) => {
     const modal = document.getElementById("guestModal");
     const confirmBtn = document.getElementById("modalConfirmBtn");
     const cancelBtn = document.getElementById("modalCancelBtn");
+
+    if (!modal) {
+      resolve(true);
+      return;
+    }
 
     modal.classList.add("active");
 
@@ -705,20 +723,19 @@ function askGuestConfirmation() {
 
     const cleanup = () => {
       modal.classList.remove("active");
-      confirmBtn.removeEventListener("click", handleConfirm);
-      cancelBtn.removeEventListener("click", handleCancel);
+      if (confirmBtn) confirmBtn.removeEventListener("click", handleConfirm);
+      if (cancelBtn) cancelBtn.removeEventListener("click", handleCancel);
     };
 
-    confirmBtn.addEventListener("click", handleConfirm);
-    cancelBtn.addEventListener("click", handleCancel);
+    if (confirmBtn) confirmBtn.addEventListener("click", handleConfirm);
+    if (cancelBtn) cancelBtn.addEventListener("click", handleCancel);
   });
 }
 
 async function startGame() {
-  // ⚠️ Verificação com Modal Cyberpunk Customizado
   if (typeof currentUser === "undefined" || !currentUser) {
     const aceitouContinuar = await askGuestConfirmation();
-    if (!aceitouContinuar) return; // Cancela se o jogador clicar em CANCELAR
+    if (!aceitouContinuar) return;
   }
 
   if (typeof initAudio === "function") initAudio();
@@ -772,6 +789,7 @@ async function startGame() {
     if (timeLeft <= 0) endGame();
   }, 100);
 }
+
 function animateFinalScore(targetScore) {
   const el = document.getElementById("finalScore");
   if (!el) return;
@@ -992,7 +1010,6 @@ if (input) {
 
   input.addEventListener("paste", (e) => e.preventDefault());
 }
-
 // ==========================================
 // REPORT DE BUGS & DISCORD WEBHOOK
 // ==========================================
