@@ -1314,7 +1314,7 @@ window.addEventListener("keydown", async (e) => {
 
   if (e.shiftKey && (e.key === "A" || e.key === "a")) {
     
-    // 🔒 Garante que temos a sessão mais atualizada do usuário
+    // Garante que temos a sessão mais atualizada do usuário
     let user = currentUser;
     if (!user) {
       const { data } = await _supabase.auth.getUser();
@@ -1324,9 +1324,9 @@ window.addEventListener("keydown", async (e) => {
     // Pega o nome cadastrado no metadado (display_name)
     const displayName = user?.user_metadata?.display_name || "";
 
-    // 🔒 Valida se o usuário está logado E se o nome é exatamente "INFAMOS" (ignorando maiúsculas/minúsculas)
+   
     if (!user || displayName.trim().toUpperCase() !== "INFAMOS") {
-      showNotification("Acesso negado. Apenas o usuário INFAMOS pode acessar.", true);
+      showNotification("Acesso negado. Apenas o administrador pode acessar.", true);
       return;
     }
 
@@ -1342,7 +1342,7 @@ window.addEventListener("keydown", async (e) => {
 });
 
 async function verifyPassword() {
-  // 🔒 Dupla verificação na hora de apertar Enter ou clicar em enviar a senha
+  // Dupla verificação na hora de apertar Enter ou clicar em enviar a senha
   let user = currentUser;
   if (!user) {
     const { data } = await _supabase.auth.getUser();
