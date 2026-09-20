@@ -1299,7 +1299,7 @@ if (adminPostForm) {
 }
 
 // ==========================================
-// PAINEL ADMIN (SHIFT + A) E EVENTOS DE MODAL
+// PAINEL ADMIN (SEGURANÇA REAL COM SUPABASE)
 // ==========================================
 
 window.addEventListener("keydown", async (e) => {
@@ -1314,23 +1314,25 @@ window.addEventListener("keydown", async (e) => {
 
   if (e.shiftKey && (e.key === "A" || e.key === "a")) {
     
-    // Garante que temos a sessão mais atualizada do usuário
-    let user = currentUser;
-    if (!user) {
-      const { data } = await _supabase.auth.getUser();
-      user = data?.user;
-    }
+    
+    const { data: { user }, error } = await _supabase.auth.getUser();
 
-    // Pega o nome cadastrado no metadado (display_name)
-    const displayName = user?.user_metadata?.display_name || "";
-
-   
-    if (!user || displayName.trim().toUpperCase() !== "INFAMOS") {
-      showNotification("Acesso negado. Apenas o administrador pode acessar.", true);
+    if (error || !user) {
+      showNotification("Acesso negado. Faça login para continuar.", true);
       return;
     }
 
-    // Se for o INFAMOS, abre o painel de senha normalmente
+   
+    const displayName = user.user_metadata?.display_name || "";
+    const email = user.email || "";
+
+  
+    if (displayName.trim().toUpperCase() !== "INFAMOS") {
+      showNotification("Acesso negado. Apenas o Infamos pode acessar este painel.", true);
+      return;
+    }
+
+    
     if (passwordOverlay) {
       passwordOverlay.classList.add("active");
       if (adminPasswordInput) {
