@@ -1314,8 +1314,8 @@ window.addEventListener("keydown", (e) => {
 
   if (e.shiftKey && (e.key === "A" || e.key === "a")) {
     
-    if (typeof currentUserId === 'undefined' || currentUserId !== "INFAMOS") {
-      showNotification("Acesso negado. Apenas o usuário INFAMOS pode acessar.", true);
+    if (typeof currentUserId === 'undefined' || currentUserId !== "Infamos") {
+      showNotification("Acesso negado. Apenas o usuário o administrador pode acessar.", true);
       return;
     }
 
@@ -1331,7 +1331,7 @@ window.addEventListener("keydown", (e) => {
 
 async function verifyPassword() {
   // 🔒 Dupla checagem na hora de verificar a senha também
-  if (typeof currentUserId === 'undefined' || currentUserId !== "INFAMOS") {
+  if (typeof currentUserId === 'undefined' || currentUserId !== "Infamos") {
     showNotification("Acesso negado.", true);
     if (passwordOverlay) passwordOverlay.classList.remove("active");
     return;
