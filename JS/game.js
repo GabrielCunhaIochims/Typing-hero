@@ -1313,6 +1313,12 @@ window.addEventListener("keydown", (e) => {
   if (isTyping) return;
 
   if (e.shiftKey && (e.key === "A" || e.key === "a")) {
+    
+    if (typeof currentUserId === 'undefined' || currentUserId !== "INFAMOS") {
+      showNotification("Acesso negado. Apenas o usuário INFAMOS pode acessar.", true);
+      return;
+    }
+
     if (passwordOverlay) {
       passwordOverlay.classList.add("active");
       if (adminPasswordInput) {
@@ -1324,6 +1330,13 @@ window.addEventListener("keydown", (e) => {
 });
 
 async function verifyPassword() {
+  // 🔒 Dupla checagem na hora de verificar a senha também
+  if (typeof currentUserId === 'undefined' || currentUserId !== "INFAMOS") {
+    showNotification("Acesso negado.", true);
+    if (passwordOverlay) passwordOverlay.classList.remove("active");
+    return;
+  }
+
   if (!adminPasswordInput) return;
   const typedPassword = adminPasswordInput.value;
   const hash = await sha256(typedPassword);
