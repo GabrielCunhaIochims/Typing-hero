@@ -1313,13 +1313,24 @@ window.addEventListener("keydown", async (e) => {
   if (isTyping) return;
 
   if (e.shiftKey && (e.key === "A" || e.key === "a")) {
-    // 🔒 Validação segura consultando o Supabase
-    const allowed = await checkAdminUser();
-    if (!allowed) {
+    
+    // 🔒 Garante que temos a sessão mais atualizada do usuário
+    let user = currentUser;
+    if (!user) {
+      const { data } = await _supabase.auth.getUser();
+      user = data?.user;
+    }
+
+    // Pega o nome cadastrado no metadado (display_name)
+    const displayName = user?.user_metadata?.display_name || "";
+
+    // 🔒 Valida se o usuário está logado E se o nome é exatamente "INFAMOS" (ignorando maiúsculas/minúsculas)
+    if (!user || displayName.trim().toUpperCase() !== "INFAMOS") {
       showNotification("Acesso negado. Apenas o usuário INFAMOS pode acessar.", true);
       return;
     }
 
+    // Se for o INFAMOS, abre o painel de senha normalmente
     if (passwordOverlay) {
       passwordOverlay.classList.add("active");
       if (adminPasswordInput) {
@@ -1330,40 +1341,16 @@ window.addEventListener("keydown", async (e) => {
   }
 });
 
-// Função auxiliar para verificar no Supabase se o usuário atual é o INFAMOS
-async function checkAdminUser() {
-  try {
-    // Pega o usuário autenticado atualmente no Supabase
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
-    if (error || !user) return false;
-
-    // Ajuste abaixo conforme a sua estrutura no banco de dados:
-    // Opção A: Se o identificador "INFAMOS" estiver no id, email ou user_metadata
-    // if (user.id === "INFAMOS" || user.email === "infamos@...") return true;
-
-    // Opção B (Mais recomendada): Buscar na tabela de perfis (profiles) do Supabase
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles') // Substitua pelo nome da sua tabela de perfis, se houver
-      .select('username') // Ou a coluna onde fica guardado "INFAMOS"
-      .eq('id', user.id)
-      .single();
-
-    if (profileError || !profile) return false;
-
-    // Valida se o username/identificador no banco é exatamente "INFAMOS" (case-insensitive ou exato)
-    return profile.username && profile.username.toUpperCase() === "INFAMOS";
-
-  } catch (err) {
-    console.error("Erro ao verificar permissão do admin:", err);
-    return false;
-  }
-}
-
 async function verifyPassword() {
-  // 🔒 Dupla checagem de segurança na hora de enviar a senha
-  const allowed = await checkAdminUser();
-  if (!allowed) {
+  // 🔒 Dupla verificação na hora de apertar Enter ou clicar em enviar a senha
+  let user = currentUser;
+  if (!user) {
+    const { data } = await _supabase.auth.getUser();
+    user = data?.user;
+  }
+  
+  const displayName = user?.user_metadata?.display_name || "";
+  if (!user || displayName.trim().toUpperCase() !== "INFAMOS") {
     showNotification("Acesso negado.", true);
     if (passwordOverlay) passwordOverlay.classList.remove("active");
     return;
