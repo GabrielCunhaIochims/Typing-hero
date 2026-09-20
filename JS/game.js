@@ -1302,7 +1302,7 @@ if (adminPostForm) {
 // PAINEL ADMIN (SHIFT + A) E EVENTOS DE MODAL
 // ==========================================
 
-window.addEventListener("keydown", (e) => {
+window.addEventListener("keydown", async (e) => {
   const activeElement = document.activeElement;
   const isTyping = activeElement && (
     activeElement.tagName === "INPUT" ||
@@ -1313,9 +1313,10 @@ window.addEventListener("keydown", (e) => {
   if (isTyping) return;
 
   if (e.shiftKey && (e.key === "A" || e.key === "a")) {
-    
-    if (typeof currentUserId === 'undefined' || currentUserId !== "Infamos") {
-      showNotification("Acesso negado. Apenas o usuário o administrador pode acessar.", true);
+    // 🔒 Validação segura consultando o Supabase
+    const allowed = await checkAdminUser();
+    if (!allowed) {
+      showNotification("Acesso negado. Apenas o usuário INFAMOS pode acessar.", true);
       return;
     }
 
@@ -1329,9 +1330,40 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+// Função auxiliar para verificar no Supabase se o usuário atual é o INFAMOS
+async function checkAdminUser() {
+  try {
+    // Pega o usuário autenticado atualmente no Supabase
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error || !user) return false;
+
+    // Ajuste abaixo conforme a sua estrutura no banco de dados:
+    // Opção A: Se o identificador "INFAMOS" estiver no id, email ou user_metadata
+    // if (user.id === "INFAMOS" || user.email === "infamos@...") return true;
+
+    // Opção B (Mais recomendada): Buscar na tabela de perfis (profiles) do Supabase
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles') // Substitua pelo nome da sua tabela de perfis, se houver
+      .select('username') // Ou a coluna onde fica guardado "INFAMOS"
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile) return false;
+
+    // Valida se o username/identificador no banco é exatamente "INFAMOS" (case-insensitive ou exato)
+    return profile.username && profile.username.toUpperCase() === "INFAMOS";
+
+  } catch (err) {
+    console.error("Erro ao verificar permissão do admin:", err);
+    return false;
+  }
+}
+
 async function verifyPassword() {
-  // 🔒 Dupla checagem na hora de verificar a senha também
-  if (typeof currentUserId === 'undefined' || currentUserId !== "Infamos") {
+  // 🔒 Dupla checagem de segurança na hora de enviar a senha
+  const allowed = await checkAdminUser();
+  if (!allowed) {
     showNotification("Acesso negado.", true);
     if (passwordOverlay) passwordOverlay.classList.remove("active");
     return;
