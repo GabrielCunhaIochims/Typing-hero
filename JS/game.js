@@ -1013,15 +1013,18 @@ if (input) {
 // ==========================================
 // REPORT DE BUGS & DISCORD WEBHOOK
 // ==========================================
+
 // Elementos do Modal de Report
-const bugReportBtn = document.getElementById("bugReportBtn"); // ID do botão que abre o modal no seu menu/jogo
+const bugReportBtn = document.getElementById("bugReportBtn"); // Botão que abre o modal
 const bugReportOverlay = document.getElementById("bugReportOverlay");
 const closeBugModalBtn = document.getElementById("closeBugModalBtn");
+const bugReportForm = document.getElementById("bugReportForm");
+const bugFeedbackMsg = document.getElementById("bugFeedbackMsg");
 
-// Função para abrir o modal
+// Função para abrir o modal de report ao clicar no botão
 if (bugReportBtn && bugReportOverlay) {
   bugReportBtn.addEventListener("click", () => {
-    bugReportOverlay.classList.add("active"); // Ou mude para o estilo que mostra o seu modal (ex: display = 'flex')
+    bugReportOverlay.classList.add("active");
   });
 }
 
@@ -1037,19 +1040,11 @@ if (closeBugModalBtn) {
   closeBugModalBtn.addEventListener("click", closeBugModal);
 }
 
-// Fechar ao clicar fora do conteúdo do modal (no overlay escuro)
-if (bugReportOverlay) {
-  bugReportOverlay.addEventListener("click", (e) => {
-    if (e.target === bugReportOverlay) {
-      closeBugModal();
-    }
-  });
-}
 if (bugReportForm) {
   bugReportForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    //  Pega o usuário logado de forma segura pelo Supabase
+    // Pega o usuário logado de forma segura pelo Supabase
     const { data: { user }, error: userError } = await _supabase.auth.getUser();
     
     if (userError || !user) {
@@ -1082,7 +1077,7 @@ if (bugReportForm) {
     const currentSong = typeof currentSongKey !== "undefined" ? currentSongKey : "Nenhuma";
 
     try {
-      // Em vez de expor o Webhook aqui, chamamos uma Edge Function segura do Supabase
+      // Chama a Edge Function segura do Supabase (sem expor o Webhook no front-end)
       const { data, error } = await _supabase.functions.invoke('send-bug-report', {
         body: {
           category: category,
@@ -1114,20 +1109,16 @@ if (bugReportForm) {
 // INTEGRAÇÃO DE ANÚNCIOS (SUPABASE)
 // ==========================================
 
-// Garante que o código encontre o Supabase mesmo se estiver como _supabase
 const getSupabaseClient = () => {
-  // 1. Tenta pegar a instância criada no escopo global
   let client = (typeof supabase !== "undefined" ? supabase : null) || 
                (typeof window._supabase !== "undefined" ? window._supabase : null);
 
   if (!client) return null;
 
-  // 2. Se a variável tiver o método .from, a instância já está pronta!
   if (typeof client.from === "function") {
     return client;
   }
 
-  // 3. Se não tiver .from, mas tiver a biblioteca global e as chaves, inicializa a instância
   if (typeof client.createClient === "function" && typeof SUPABASE_URL !== "undefined" && typeof SUPABASE_ANON_KEY !== "undefined") {
     if (!window._supabaseInstance) {
       window._supabaseInstance = client.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1169,7 +1160,7 @@ async function loadAndRenderAnnouncements() {
 }
 
 function renderAnnouncements() {
-  if (!newsList) return;
+  if (typeof newsList === "undefined" || !newsList) return;
 
   if (announcements.length === 0) {
     newsList.innerHTML = `<div style="color: #666; font-size: 0.85rem; padding: 10px; text-align: center;">Nenhuma atualização publicada ainda.</div>`;
@@ -1203,8 +1194,7 @@ function renderAnnouncements() {
   }).join("");
 }
 
-// Delegation de clique para exclusão
-if (newsList) {
+if (typeof newsList !== "undefined" && newsList) {
   newsList.addEventListener("click", async (e) => {
     const deleteBtn = e.target.closest(".delete-news-btn");
     if (!deleteBtn) return;
@@ -1236,23 +1226,23 @@ if (newsList) {
 
 function checkUnreadNews() {
   const lastRead = parseInt(localStorage.getItem("last_read_news_count") || "0", 10);
-  if (announcements.length > lastRead && newsModalBtn) {
+  if (announcements.length > lastRead && typeof newsModalBtn !== "undefined" && newsModalBtn) {
     newsModalBtn.classList.add("has-unread-news");
-  } else if (newsModalBtn) {
+  } else if (typeof newsModalBtn !== "undefined" && newsModalBtn) {
     newsModalBtn.classList.remove("has-unread-news");
   }
 }
 
-if (newsModalBtn) {
+if (typeof newsModalBtn !== "undefined" && newsModalBtn) {
   newsModalBtn.addEventListener("click", () => {
-    if (newsOverlay) newsOverlay.classList.add("active");
+    if (typeof newsOverlay !== "undefined" && newsOverlay) newsOverlay.classList.add("active");
     renderAnnouncements();
     localStorage.setItem("last_read_news_count", announcements.length.toString());
     newsModalBtn.classList.remove("has-unread-news");
   });
 }
 
-if (adminPostForm) {
+if (typeof adminPostForm !== "undefined" && adminPostForm) {
   adminPostForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -1281,7 +1271,6 @@ if (adminPostForm) {
       await loadAndRenderAnnouncements();
     } catch (err) {
       console.error("Erro detalhado ao inserir anúncio:", err);
-      // Exibe o motivo exato retornado pelo Supabase (ex: erro de permissão RLS)
       alert(`Erro no Supabase: ${err.message || err.details || "Não foi possível salvar a mensagem."}`);
     }
   });
@@ -1302,29 +1291,23 @@ window.addEventListener("keydown", async (e) => {
   if (isTyping) return;
 
   if (e.shiftKey && (e.key === "A" || e.key === "a")) {
-    
-    
     const { data: { user }, error } = await _supabase.auth.getUser();
 
     if (error || !user) {
-      showNotification("Acesso negado. Faça login para continuar.", true);
+      if (typeof showNotification === "function") showNotification("Acesso negado. Faça login para continuar.", true);
       return;
     }
 
-   
     const displayName = user.user_metadata?.display_name || "";
-    const email = user.email || "";
 
-  
     if (displayName.trim().toUpperCase() !== "INFAMOS") {
-      showNotification("Acesso negado. Apenas o Infamos pode acessar este painel.", true);
+      if (typeof showNotification === "function") showNotification("Acesso negado. Apenas o Infamos pode acessar este painel.", true);
       return;
     }
 
-    
-    if (passwordOverlay) {
+    if (typeof passwordOverlay !== "undefined" && passwordOverlay) {
       passwordOverlay.classList.add("active");
-      if (adminPasswordInput) {
+      if (typeof adminPasswordInput !== "undefined" && adminPasswordInput) {
         adminPasswordInput.value = "";
         adminPasswordInput.focus();
       }
@@ -1333,8 +1316,7 @@ window.addEventListener("keydown", async (e) => {
 });
 
 async function verifyPassword() {
-  // Dupla verificação na hora de apertar Enter ou clicar em enviar a senha
-  let user = currentUser;
+  let user = typeof currentUser !== "undefined" ? currentUser : null;
   if (!user) {
     const { data } = await _supabase.auth.getUser();
     user = data?.user;
@@ -1342,49 +1324,49 @@ async function verifyPassword() {
   
   const displayName = user?.user_metadata?.display_name || "";
   if (!user || displayName.trim().toUpperCase() !== "INFAMOS") {
-    showNotification("Acesso negado.", true);
-    if (passwordOverlay) passwordOverlay.classList.remove("active");
+    if (typeof showNotification === "function") showNotification("Acesso negado.", true);
+    if (typeof passwordOverlay !== "undefined" && passwordOverlay) passwordOverlay.classList.remove("active");
     return;
   }
 
-  if (!adminPasswordInput) return;
+  if (typeof adminPasswordInput === "undefined" || !adminPasswordInput) return;
   const typedPassword = adminPasswordInput.value;
-  const hash = await sha256(typedPassword);
+  const hash = typeof sha256 === "function" ? await sha256(typedPassword) : typedPassword;
 
-  if (hash === ADMIN_PASSWORD_HASH) {
-    if (passwordOverlay) passwordOverlay.classList.remove("active");
-    if (adminOverlay) adminOverlay.classList.add("active");
+  if (hash === (typeof ADMIN_PASSWORD_HASH !== "undefined" ? ADMIN_PASSWORD_HASH : "")) {
+    if (typeof passwordOverlay !== "undefined" && passwordOverlay) passwordOverlay.classList.remove("active");
+    if (typeof adminOverlay !== "undefined" && adminOverlay) adminOverlay.classList.add("active");
   } else {
-    showNotification("Senha incorreta!", true);
+    if (typeof showNotification === "function") showNotification("Senha incorreta!", true);
     adminPasswordInput.value = "";
   }
 }
 
-if (submitPasswordBtn) submitPasswordBtn.addEventListener("click", verifyPassword);
-if (adminPasswordInput) {
+if (typeof submitPasswordBtn !== "undefined" && submitPasswordBtn) submitPasswordBtn.addEventListener("click", verifyPassword);
+if (typeof adminPasswordInput !== "undefined" && adminPasswordInput) {
   adminPasswordInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") verifyPassword();
   });
 }
 
-if (closeNewsModalBtn) closeNewsModalBtn.addEventListener("click", () => newsOverlay && newsOverlay.classList.remove("active"));
-if (closePasswordModalBtn) closePasswordModalBtn.addEventListener("click", () => passwordOverlay && passwordOverlay.classList.remove("active"));
-if (closeAdminModalBtn) closeAdminModalBtn.addEventListener("click", () => adminOverlay && adminOverlay.classList.remove("active"));
+if (typeof closeNewsModalBtn !== "undefined" && closeNewsModalBtn) closeNewsModalBtn.addEventListener("click", () => typeof newsOverlay !== "undefined" && newsOverlay && newsOverlay.classList.remove("active"));
+if (typeof closePasswordModalBtn !== "undefined" && closePasswordModalBtn) closePasswordModalBtn.addEventListener("click", () => typeof passwordOverlay !== "undefined" && passwordOverlay && passwordOverlay.classList.remove("active"));
+if (typeof closeAdminModalBtn !== "undefined" && closeAdminModalBtn) closeAdminModalBtn.addEventListener("click", () => typeof adminOverlay !== "undefined" && adminOverlay && adminOverlay.classList.remove("active"));
 
 window.addEventListener("click", (e) => {
-  if (newsOverlay && e.target === newsOverlay) newsOverlay.classList.remove("active");
-  if (passwordOverlay && e.target === passwordOverlay) passwordOverlay.classList.remove("active");
-  if (adminOverlay && e.target === adminOverlay) adminOverlay.classList.remove("active");
-  if (bugReportOverlay && e.target === bugReportOverlay) closeBugModal();
+  if (typeof newsOverlay !== "undefined" && newsOverlay && e.target === newsOverlay) newsOverlay.classList.remove("active");
+  if (typeof passwordOverlay !== "undefined" && passwordOverlay && e.target === passwordOverlay) passwordOverlay.classList.remove("active");
+  if (typeof adminOverlay !== "undefined" && adminOverlay && e.target === adminOverlay) adminOverlay.classList.remove("active");
+  if (typeof bugReportOverlay !== "undefined" && bugReportOverlay && e.target === bugReportOverlay) closeBugModal();
 });
 
-// Carrega os anúncios assim que o script terminar de ler a página
+// Inicialização
 document.addEventListener("DOMContentLoaded", () => {
   loadAndRenderAnnouncements();
 });
-// Caso o DOM já tenha carregado:
+
 if (document.readyState === "complete" || document.readyState === "interactive") {
   loadAndRenderAnnouncements();
 }
-// Inicializa a chamada dos anúncios no Supabase
+
 fetchAnnouncements();
