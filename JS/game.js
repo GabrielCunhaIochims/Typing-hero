@@ -1013,7 +1013,38 @@ if (input) {
 // ==========================================
 // REPORT DE BUGS & DISCORD WEBHOOK
 // ==========================================
+// Elementos do Modal de Report
+const bugReportBtn = document.getElementById("bugReportBtn"); // ID do botão que abre o modal no seu menu/jogo
+const bugReportOverlay = document.getElementById("bugReportOverlay");
+const closeBugModalBtn = document.getElementById("closeBugModalBtn");
 
+// Função para abrir o modal
+if (bugReportBtn && bugReportOverlay) {
+  bugReportBtn.addEventListener("click", () => {
+    bugReportOverlay.classList.add("active"); // Ou mude para o estilo que mostra o seu modal (ex: display = 'flex')
+  });
+}
+
+// Função global para fechar o modal (usada também no submit)
+window.closeBugModal = function() {
+  if (bugReportOverlay) {
+    bugReportOverlay.classList.remove("active");
+  }
+}
+
+// Botão de fechar (X)
+if (closeBugModalBtn) {
+  closeBugModalBtn.addEventListener("click", closeBugModal);
+}
+
+// Fechar ao clicar fora do conteúdo do modal (no overlay escuro)
+if (bugReportOverlay) {
+  bugReportOverlay.addEventListener("click", (e) => {
+    if (e.target === bugReportOverlay) {
+      closeBugModal();
+    }
+  });
+}
 if (bugReportForm) {
   bugReportForm.addEventListener("submit", async (e) => {
     e.preventDefault();
