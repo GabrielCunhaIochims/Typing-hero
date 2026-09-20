@@ -1014,37 +1014,14 @@ if (input) {
 // REPORT DE BUGS & DISCORD WEBHOOK
 // ==========================================
 
-if (bugReportBtn && bugReportOverlay) {
-  bugReportBtn.addEventListener("click", () => {
-    const user = getLoggedUser();
-    if (!user) {
-      showNotification("ACESSO NEGADO: Você precisa estar logado para reportar um bug!", true);
-      return;
-    }
-    bugReportOverlay.classList.add("active");
-    if (input) input.blur();
-  });
-}
-
-function closeBugModal() {
-  if (bugReportOverlay) {
-    bugReportOverlay.classList.remove("active");
-    if (bugReportForm) bugReportForm.reset();
-    if (bugFeedbackMsg) {
-      bugFeedbackMsg.textContent = "";
-      bugFeedbackMsg.className = "bug-feedback-msg";
-    }
-  }
-}
-
-if (closeBugModalBtn) closeBugModalBtn.addEventListener("click", closeBugModal);
-
 if (bugReportForm) {
   bugReportForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const user = getLoggedUser();
-    if (!user) {
+    //  Pega o usuário logado de forma segura pelo Supabase
+    const { data: { user }, error: userError } = await _supabase.auth.getUser();
+    
+    if (userError || !user) {
       if (bugFeedbackMsg) {
         bugFeedbackMsg.textContent = "Sessão expirada. Faça login para reportar.";
         bugFeedbackMsg.style.color = "#ff0066";
@@ -1066,51 +1043,32 @@ if (bugReportForm) {
       return;
     }
 
-    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1541949547255955476/Tgvh7uqpFbS1CrBLKhQaEunXUb5SBdKtsSLScu3N2JlpkiWHiJT_XJBxpfKMe2BbRA98";
-
     if (bugFeedbackMsg) {
       bugFeedbackMsg.textContent = "Enviando relatório...";
       bugFeedbackMsg.style.color = "#00ffcc";
     }
 
-    const username = user.username || user.name || user.email || "Usuário Autenticado";
-    const userId = user.id || user.uid || "N/A";
     const currentSong = typeof currentSongKey !== "undefined" ? currentSongKey : "Nenhuma";
 
-    const payload = {
-      username: "Bug Reporter Bot",
-      avatar_url: "https://cdn-icons-png.flaticon.com/512/682/682009.png",
-      embeds: [{
-        title: "Novo Bug Reportado!",
-        color: 16711782,
-        fields: [
-          { name: "Enviado por", value: `${username} (ID: ${userId})`, inline: false },
-          { name: "Música Selecionada", value: currentSong, inline: true },
-          { name: "Categoria", value: category, inline: true },
-          { name: "Descrição / Relato", value: description }
-        ],
-        footer: { text: "Sistema de Report de Bugs • Typing Hero" },
-        timestamp: new Date().toISOString()
-      }]
-    };
-
     try {
-      const response = await fetch(DISCORD_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+      // Em vez de expor o Webhook aqui, chamamos uma Edge Function segura do Supabase
+      const { data, error } = await _supabase.functions.invoke('send-bug-report', {
+        body: {
+          category: category,
+          description: description,
+          currentSong: currentSong
+        }
       });
 
-      if (response.ok) {
-        if (bugFeedbackMsg) {
-          bugFeedbackMsg.textContent = "✓ Relatório enviado ao Discord com sucesso!";
-          bugFeedbackMsg.className = "bug-feedback-msg success";
-        }
-        bugReportForm.reset();
-        setTimeout(closeBugModal, 1500);
-      } else {
-        throw new Error("Erro na resposta do Webhook");
+      if (error) throw error;
+
+      if (bugFeedbackMsg) {
+        bugFeedbackMsg.textContent = "✓ Relatório enviado ao Discord com sucesso!";
+        bugFeedbackMsg.className = "bug-feedback-msg success";
       }
+      bugReportForm.reset();
+      setTimeout(closeBugModal, 1500);
+
     } catch (error) {
       console.error("Erro ao enviar o bug:", error);
       if (bugFeedbackMsg) {
