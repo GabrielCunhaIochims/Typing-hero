@@ -58,25 +58,7 @@ TypingHero/
 
 ---
 
-##  Configuração e Instalação
 
-1. **Clonar o Repositório**:
-   ```bash
-   git clone https://github.com/seu-usuario/TypingHero.git
-   cd TypingHero
-   ```
-
-2. **Configurar as Variáveis do Supabase**:
-   No ficheiro `js/config.js`, adicione as suas credenciais do projeto Supabase:
-   ```javascript
-   export const SUPABASE_URL = 'SUA_SUPABASE_URL';
-   export const SUPABASE_ANON_KEY = 'SUA_SUPABASE_ANON_KEY';
-   ```
-
-3. **Executar o Projeto**:
-   Como o projeto utiliza módulos ES6 (`import`/`export`), abra o ficheiro `index.html` através de um servidor local (ex: extensão **Live Server** no VS Code ou `npx serve`).
-
----
 
 ##  Como Jogar
 
