@@ -1,8 +1,5 @@
-// Estado global para controlar o critério de ordenação atual ('score' ou 'wpm')
 let currentLeaderboardMetric = 'score';
 
-// 1. Cria ou obtém o container do Leaderboard na DOM
-// 1. Cria ou obtém o container do Leaderboard na DOM
 function createLeaderboardUI() {
   let boardContainer = document.getElementById("leaderboardContainer");
   const mainContainer = document.querySelector(".song-selector-container");
@@ -12,14 +9,12 @@ function createLeaderboardUI() {
     boardContainer.id = "leaderboardContainer";
     boardContainer.className = "leaderboard-section";
     
-    // Anexa o leaderboard como segundo filho do container principal (ao lado da coluna esquerda)
     mainContainer.appendChild(boardContainer);
   }
 
   return boardContainer;
 }
 
-// 2. Auxiliar para prevenir ataques XSS nos nicks dos jogadores
 function escapeHtml(str) {
   if (!str) return "";
   return String(str)
@@ -30,7 +25,6 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
-// 3. Busca as pontuações (Ordena por Pontos ou WPM no Supabase/LocalStorage)
 async function fetchScoresForSong(songKey, metric = 'score') {
   let remoteScores = null;
 
@@ -55,14 +49,12 @@ async function fetchScoresForSong(songKey, metric = 'score') {
   const localScores = allScores[songKey] || [];
   return localScores.sort((a, b) => (b[metric] || 0) - (a[metric] || 0)).slice(0, 50);
 }
-// 4. Salva a pontuação (Atualiza se bater o recorde de PONTOS OU WPM)
 async function saveScoreForSong(songKey, newScore, rankName, wpm) {
   const parsedScore = Math.round(Number(newScore) || 0);
   const parsedWpm = Math.round(Number(wpm) || 0);
 
   if (parsedScore <= 0) return; // Ignora pontuações zeradas
 
-  // 🔒 Apenas usuários logados podem salvar
   if (typeof currentUser === "undefined" || !currentUser) {
     console.warn("Pontuação não salva: Apenas usuários logados podem entrar na leaderboard.");
     return;
@@ -75,7 +67,6 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
 
   let recordUpdated = false;
 
-  // A. Operações no Supabase
   if (typeof _supabase !== "undefined" && _supabase) {
     try {
       const { data: existingRecord, error: selectError } = await _supabase
@@ -88,7 +79,6 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
       if (selectError) {
         console.error("Erro ao consultar registro existente:", selectError.message);
       } else if (existingRecord) {
-        // Atualiza se superou O PONTO OU O WPM anterior
         const isBetterScore = parsedScore > existingRecord.score;
         const isBetterWpm = parsedWpm > existingRecord.wpm;
 
@@ -96,7 +86,6 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
           const updatePayload = {
             rank: rankName,
             player: playerName,
-            // Mantém o maior valor de cada um caso melhore individualmente
             score: Math.max(parsedScore, existingRecord.score),
             wpm: Math.max(parsedWpm, existingRecord.wpm)
           };
@@ -114,7 +103,6 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
           }
         }
       } else {
-        // Primeiro registro do usuário nesta música
         const { error: insertError } = await _supabase
           .from("leaderboard")
           .insert([
@@ -143,7 +131,6 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
   await updateUserPBDisplay(songKey); 
   }
 
-  // B. Atualiza LocalStorage e a Tabela na Tela
   if (recordUpdated) {
     const allScores = JSON.parse(localStorage.getItem("typing_game_leaderboards")) || {};
     if (!allScores[songKey]) allScores[songKey] = [];
@@ -159,7 +146,6 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
     };
 
     if (existingIndex !== -1) {
-      // Atualiza mantendo os maiores valores
       const prev = allScores[songKey][existingIndex];
       allScores[songKey][existingIndex] = {
         ...newEntry,
@@ -172,12 +158,10 @@ async function saveScoreForSong(songKey, newScore, rankName, wpm) {
 
     localStorage.setItem("typing_game_leaderboards", JSON.stringify(allScores));
 
-    // Recarrega a tabela respeitando o filtro atual
     await renderLeaderboard(songKey, currentLeaderboardMetric);
   }
 }
 
-// 5. Renderiza o Ranking na tela com controles de alternância e container com Scroll
 async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
   currentLeaderboardMetric = metric;
   const container = createLeaderboardUI();
@@ -239,7 +223,6 @@ async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
     `;
   }).join("");
 
-  // max-height de 180px força a rolagem aparecer mesmo com poucas linhas
   container.innerHTML = `
     ${tabsHtml}
     <div class="leaderboard-table-wrapper" style="max-height: 180px; overflow-y: scroll; overflow-x: hidden;">
@@ -261,12 +244,10 @@ async function renderLeaderboard(songKey, metric = currentLeaderboardMetric) {
   `;
 }
 
-// 6. Função global acionada ao clicar nos botões de Pontos/WPM
 window.changeLeaderboardMetric = function(songKey, metric) {
   renderLeaderboard(songKey, metric);
 };
 
-// 7. Event Listeners para recarregar ao trocar de música
 document.addEventListener("DOMContentLoaded", () => {
   const songSelect = document.getElementById("songSelect");
 
