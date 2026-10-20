@@ -1,8 +1,6 @@
-// JS/auth.js
 
 let currentUser = null;
 
-// 1. Alterna entre as abas 'login' e 'register'
 function switchTab(tab) {
   const formLogin = document.getElementById('formLogin');
   const formRegister = document.getElementById('formRegister');
@@ -11,7 +9,6 @@ function switchTab(tab) {
 
   if (!formLogin || !formRegister) return;
 
-  // Limpa mensagens
   document.getElementById('loginError').textContent = '';
   document.getElementById('regError').textContent = '';
   document.getElementById('regSuccess').textContent = '';
@@ -29,7 +26,6 @@ function switchTab(tab) {
   }
 }
 
-// 2. Manipula o formulário de Login
 async function handleLogin(event) {
   event.preventDefault();
 
@@ -50,7 +46,6 @@ async function handleLogin(event) {
 
     if (error) throw error;
 
-    // Entra no jogo
     window.location.href = 'index.html';
   } catch (err) {
     errorMsg.textContent = translateError(err.message);
@@ -60,7 +55,6 @@ async function handleLogin(event) {
   }
 }
 
-// 3. Manipula o formulário de Cadastro
 async function handleRegister(event) {
   event.preventDefault();
 
@@ -89,11 +83,9 @@ async function handleRegister(event) {
 
     if (error) throw error;
 
-    // Se o usuário já tiver uma sessão ativa (confirmação de email desativada)
     if (data.session) {
       window.location.href = 'index.html';
     } else {
-      // Se a confirmação por e-mail estiver ativa no Supabase
       successMsg.textContent = 'Conta criada! Verifique seu e-mail para confirmar a conta antes de entrar.';
       document.getElementById('formRegister').reset();
     }
@@ -105,7 +97,6 @@ async function handleRegister(event) {
   }
 }
 
-// 4. Verifica a sessão atual (usado nas páginas do jogo)
 async function checkUserSession() {
   const userInfo = document.getElementById('userInfo');
   const authActionBtn = document.getElementById('authActionBtn');
@@ -130,7 +121,6 @@ async function checkUserSession() {
         };
       }
 
-      // ⚡ Atualiza o card de Recorde Pessoal (PB) para a música selecionada assim que o usuário é autenticado
       const songSelect = document.getElementById('songSelect');
       if (songSelect && songSelect.value && typeof updateUserPBDisplay === 'function') {
         updateUserPBDisplay(songSelect.value);
@@ -144,7 +134,6 @@ async function checkUserSession() {
   }
 }
 
-// Auxiliar para reset de convidado
 function setGuestUI(userInfo, authActionBtn) {
   currentUser = null;
   if (userInfo) userInfo.textContent = '👤 Convidado';
@@ -154,14 +143,12 @@ function setGuestUI(userInfo, authActionBtn) {
     authActionBtn.onclick = null;
   }
 
-  // ⚡ Se estiver como convidado, zera ou busca o PB local
   const songSelect = document.getElementById('songSelect');
   if (songSelect && songSelect.value && typeof updateUserPBDisplay === 'function') {
     updateUserPBDisplay(songSelect.value);
   }
 }
 
-// Tradutor de erros em inglês do Supabase
 function translateError(message) {
   if (message.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
   if (message.includes('User already registered')) return 'Este e-mail já está cadastrado.';
